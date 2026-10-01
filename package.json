@@ -7,8 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint src --ext js,jsx",
-    "test": "node tests/auth.test.js && node tests/videoValidation.test.js"
+    "lint": "eslint src worker --ext js,jsx",
+    "test": "node tests/auth.test.js && node tests/videoValidation.test.js && node --test tests/proxy.test.js",
+    "test:proxy": "node --test tests/proxy.test.js",
+    "dev:cloudflare": "wrangler dev --local --ip 127.0.0.1 --port 8787",
+    "check:cloudflare": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "deploy:cloudflare": "wrangler deploy"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.7",
@@ -32,7 +36,8 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "postcss": "^8.4.41",
     "tailwindcss": "^3.4.10",
-    "vite": "^7.3.6"
+    "vite": "^7.3.6",
+    "wrangler": "4.145.0"
   },
   "engines": {
     "node": ">=22.12.0"

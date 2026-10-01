@@ -20,9 +20,9 @@ Assigned students receive short-lived signed playback URLs. The player renews be
 
 ## Verify
 
-Run `npm run lint`, `npm test`, `npm run build` and `npm audit`. Eight client tests cover authentication races, expiry, storage errors and MP4 header/extension rejection. They are unit tests, not full browser tests.
+Run `npm run lint`, `npm test`, `npm run build` and `npm audit`. Seventeen tests cover authentication races, MP4 validation and the Worker proxy, including cookie preservation, CSRF headers, forwarding-header sanitization, fixed routing, unsafe redirects and no-store behavior. They are unit tests, not deployed-browser tests.
 
-The development API must be configured for private R2 and Atlas/local MongoDB. Apply [local CORS](docs/r2-local-cors.json) in the R2 bucket dashboard; keep the bucket private. See [deployment guidance](docs/deployment.md) for a Vercel same-origin /api rewrite to a Render API. Actual deployed origins must be configured explicitly. Cross-site API cookies are not the supported setup.
+The development API must be configured for private R2 and Atlas/local MongoDB. Apply [local CORS](docs/r2-local-cors.json) in the R2 bucket dashboard; keep the bucket private. Cloudflare Workers Static Assets deployment and a fixed same-origin `/api` proxy to the live Render API are configured in `wrangler.jsonc` and `worker/index.js`. See [exact deployment settings](docs/deployment.md). Run `npm run check:cloudflare` after building for a non-deploying bundle check. Actual deployed origins must be configured explicitly. Cross-site API cookies are not the supported setup.
 
 ## Current verification scope
 

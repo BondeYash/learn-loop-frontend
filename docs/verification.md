@@ -13,3 +13,11 @@ Verified on 2026-10-01 with synthetic accounts/content, local Vite/Node services
 - Frontend: lint, eight tests and production build passed. Backend: 25 tests passed, including legacy regression tests and new real-MongoDB/HTTP tests with explicitly mocked object storage. Production dependency audits found zero known vulnerabilities; staged files were scanned for credentials before publication.
 
 The short fixture does not verify large-file performance, every interruption/cancellation point, every codec/browser/device, deployed cookie/proxy settings, backup recovery or viewer capacity. H.264/AAC MP4 remains the recommended input. Signed URLs remain bearer credentials until expiry; buffered/downloaded bytes cannot be revoked.
+
+## Cloudflare frontend/proxy preparation
+
+The frontend now includes Wrangler 4.145.0, a Workers Static Assets configuration and a fixed Render API proxy. Seventeen tests pass (the existing eight plus nine focused proxy cases). Lint, the production Vite build, dependency audit (zero known vulnerabilities) and Wrangler deployment dry run passed. Wrangler's local runtime initially detected unsupported entry-point helper exports; moving helpers into a separate module resolved it, and the corrected runtime checks passed.
+
+The real local Wrangler runtime served `/`, `/login` and a course deep link as SPA HTML. It forwarded read-only requests to the deployed Render API: `/api/health` returned 200 JSON, while `/api` and an unknown API route returned 404 JSON. All API responses carried private/no-store headers. The legacy video byte route returned 410 locally and a cross-origin write returned 403 before forwarding. No production account/course/session mutation or Cloudflare deployment was performed.
+
+Proxy tests verify raw body/method/query forwarding, separate Set-Cookie headers including Expires commas/logout, original Origin and Sec-Fetch-Site, cookie forwarding, removal of forged forwarding chains, safe manual redirects, no-store handling, and JSON errors. Browser cookie behavior on the eventual Cloudflare HTTPS domain still requires a post-deployment check after the exact origin is configured in Render and R2. The backend's shared anonymous/failed-login IP limits are documented as a separate follow-up.

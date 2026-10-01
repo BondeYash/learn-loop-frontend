@@ -24,3 +24,8 @@ storage/
 Thumbs.db
 .vscode/
 .idea/
+
+# Cloudflare local state, bundles and credentials
+.wrangler/
+.dev.vars
+.dev.vars.*
