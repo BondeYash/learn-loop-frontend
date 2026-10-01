@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      try {
+        const saved = localStorage.getItem("lessonloop_theme");
+        const dark = saved === "dark" || (!saved && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+        document.documentElement.style.colorScheme = dark ? "dark" : "light";
+      } catch { /* The app also applies the theme after loading. */ }
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#0071e3" />
+    <meta name="description" content="LessonLoop — video courses, thoughtfully shared with your students." />
+    <title>LessonLoop</title>
+  </head>
+  <body class="bg-surface-light dark:bg-surface-dark text-slate-900 dark:text-slate-100">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

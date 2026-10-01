@@ -1,0 +1,1 @@
+export default function CategoryBadge({ category }) { return <span className="rounded-full bg-accent-100 px-2.5 py-1 text-xs font-semibold text-accent-700 dark:bg-accent-900 dark:text-accent-200">{category?.name || "Uncategorized"}</span>; }

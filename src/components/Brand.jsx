@@ -1,0 +1,3 @@
+export default function Brand({ compact = false, large = false }) {
+  return <span className="inline-flex shrink-0 items-center gap-2.5"><svg aria-hidden="true" viewBox="0 0 40 40" className={`${large ? "h-12 w-12" : "h-9 w-9"} text-[#1d1d1f] dark:text-[#55555e]`}><rect width="40" height="40" rx="12" fill="currentColor" /><path d="M29 15a10 10 0 0 0-17-2M11 25a10 10 0 0 0 17 2" fill="none" stroke="#b8c1cd" strokeWidth="2.5" strokeLinecap="round" /><path d="m17 13 11 7-11 7Z" fill="#fff" stroke="#fff" strokeLinejoin="round" strokeWidth="1.5" /><circle cx="11" cy="17" r="2" fill="#0071e3" /></svg>{!compact && <span className={`${large ? "text-2xl" : "text-lg"} font-display font-semibold tracking-tight text-slate-900 dark:text-white`}>LessonLoop</span>}</span>;
+}
