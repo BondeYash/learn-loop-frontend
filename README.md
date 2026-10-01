@@ -2,6 +2,8 @@
 
 The React app for LessonLoop: instructors manage courses, MP4 videos and assignments; students watch assigned lessons and track completion. Responsive light/dark screens use system typography and a restrained blue accent.
 
+Admin-only instructor provisioning, access controls, user/course/video oversight and recoverable course archive/restore are now included. Read [admin management and rollout](docs/admin-management.md). Existing instructors/data are preserved; the operator runs the protected first-admin setup.
+
 Backend: [BondeYash/learn-loop-backend](https://github.com/BondeYash/learn-loop-backend).
 
 ## Run locally

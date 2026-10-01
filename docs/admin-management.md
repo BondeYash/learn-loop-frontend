@@ -1,0 +1,15 @@
+# Administrator and course management
+
+Public signup is student-only; the common login resolves roles from the server. The backend already had an admin role; this release supplies its management API and frontend. `/admin` is admin-only and provides searchable, paginated people/course/video/activity views. Existing instructors remain active until explicitly reviewed.
+
+Admins can create instructors, replace their expiring temporary passwords, pause/restore instructor or student access, manage all course content/publication/assignments, transfer course ownership to an active instructor and preview attached ready videos. Administrators cannot suspend or reset themselves/other admins through these controls. No password/hash/reset token/storage key is returned in admin lists. No invitation or password email is sent automatically.
+
+Temporary-password accounts are routed to `/change-password` before normal protected screens. The backend independently enforces this. New private passwords replace the temporary credential and revoke other sessions. Every signed-in account can use Change my password in the footer.
+
+Course details are editable from the curriculum screen. **Archive course** is recoverable deletion: confirmation explains access revocation and retention. Active/Archived filters are available in instructor and admin course lists. **Restore course** returns a draft with curriculum, media, assignments and completion intact; review and republish explicitly. Signed links already issued can remain usable until expiry. Permanent R2 deletion is not part of this feature.
+
+The first admin must be created by the operator through the backend's protected interactive `npm run bootstrap:admin` command. The operator enters the password directly; no production administrator or default credential is created by the deployment. Read the backend [setup, role matrix and rollout guide](https://github.com/BondeYash/learn-loop-backend/blob/main/docs/admin-rollout.md).
+
+Deploy backend before frontend. No new provider, secret or mandatory environment variable is introduced. Keep existing same-origin `/api`, production cookies, exact backend CLIENT_URL and R2 CORS. Once courses are archived/accounts suspended, do not roll the backend back to code that ignores those fields.
+
+Verification on 2026-10-01: frontend lint/build and all 17 automated tests passed; Cloudflare dry-run bundling passed; production npm audit reported zero known vulnerabilities. Backend's 40 tests cover real isolated MongoDB/HTTP and the new permissions/race/CRUD workflows, with object storage mocked. An isolated local browser review confirmed admin login, light/dark dashboard, a 390px layout without page overflow, instructor form cancellation, video inventory, course detail save, archive cancellation, archive and restore-as-draft with retained lesson and student assignment. Credential changes were tested through isolated backend tests; no hosted admin/account provisioning was performed. These checks do not certify production user capacity.

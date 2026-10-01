@@ -4,6 +4,7 @@ export const API_BASE = configuredUrl && /^(\/|https?:\/\/)/.test(configuredUrl)
 const axiosInstance = axios.create({ baseURL: API_BASE, withCredentials: true, timeout: 30_000, headers: { "Content-Type": "application/json" } });
 axiosInstance.interceptors.response.use((response) => response, (error) => {
   if (error.response?.status === 401 && !error.config?.url?.startsWith("/auth/")) window.dispatchEvent(new Event("lms-session-expired"));
+  if (error.response?.data?.code === "PASSWORD_CHANGE_REQUIRED") window.dispatchEvent(new Event("lms-password-change-required"));
   return Promise.reject(error);
 });
 export const errorMessage = (error) => error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || (error.code === "ECONNABORTED" ? "The request timed out. Please retry." : error.message) || "Something went wrong. Please retry.";
