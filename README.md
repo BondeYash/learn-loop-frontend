@@ -26,4 +26,6 @@ The development API must be configured for private R2 and Atlas/local MongoDB. A
 
 ## Current verification scope
 
-The production build and lint pass. The new signed player loaded an existing R2 sample and renewed its URL in the local browser. At publication time the browser upload still awaited the bucket CORS rule; no complete new browser upload-to-student path or production/load test is claimed. The backend README records its automated and storage checks. Captions, adaptive bitrate, quizzes, payments and certificates are outside scope.
+The production build and lint pass. After the exact local bucket CORS rule was saved, the retained synthetic MP4 uploaded through the instructor browser, passed real R2 confirmation, was published and assigned, and played to the end in the student browser. Native seeking, completion persistence after reload and automatic signed URL renewal were verified. No production/load test or all-browser/all-codec guarantee is claimed. Captions, adaptive bitrate, quizzes, payments and certificates are outside scope.
+
+Live evidence and limits: [local verification record](docs/verification.md).
