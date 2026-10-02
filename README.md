@@ -20,6 +20,8 @@ Progress, cancel, retry and rechecking a completed upload are available. Interru
 
 Assigned students receive short-lived signed playback URLs. The player renews before expiry and preserves position; access denial or network errors expose retry. Revocation stops new tickets but already issued URLs remain bearer credentials until expiry. Previously downloaded bytes cannot be revoked.
 
+Student playback hides supported download actions and shows a partial learner-code watermark, including wrapper fullscreen where available. These discourage casual sharing; they cannot prevent downloading or screen recording. See [behavior, browser limits and isolated player checks](docs/student-video-deterrents.md).
+
 ## Verify
 
 Run `npm run lint`, `npm test`, `npm run build` and `npm audit`. Seventeen tests cover authentication races, MP4 validation and the Worker proxy, including cookie preservation, CSRF headers, forwarding-header sanitization, fixed routing, unsafe redirects and no-store behavior. They are unit tests, not deployed-browser tests.
