@@ -6,7 +6,7 @@ export function isMp4Header(bytes) {
   return !brands.includes("qt  ") && brands.some((brand) => /^(isom|iso[2-9]|mp4[12]|avc1|M4V )$/.test(brand));
 }
 export async function validateVideo(file, signal) {
-  const guidance = "Convert the video to H.264 video with AAC audio in an MP4 container before uploading. WebM and MOV cannot be converted here.";
+  const guidance = "Convert the video to H.264 video with AAC audio in an MP4 container before uploading. WebM, MOV and MKV cannot be converted here. Preview with sound before sharing; the first-frame check does not verify the audio codec.";
   if (!/\.mp4$/i.test(file.name) || file.size < 16 || file.size > 2 * 1024 ** 3) throw new Error(`Choose a precompressed MP4 up to 2 GB. ${guidance}`);
   if (!isMp4Header(new Uint8Array(await file.slice(0, 64).arrayBuffer()))) throw new Error(`The file contents are not an accepted MP4. ${guidance}`);
   if (signal?.aborted) throw new DOMException("Upload stopped", "AbortError");

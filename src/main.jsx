@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { ThemeProvider } from "./theme/ThemeProvider.jsx";
 import App from "./App.jsx";
+import DecisionProvider from "./components/DecisionProvider.jsx";
 import { store } from "./store/store.js";
 import "./index.css";
 
@@ -14,7 +15,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <Provider store={store}>
       <ThemeProvider><BrowserRouter>
-        <App />
+        <DecisionProvider><App /></DecisionProvider>
         <ToastContainer position="top-right" autoClose={3500} newestOnTop theme="colored" />
       </BrowserRouter></ThemeProvider>
     </Provider>

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useDecision } from "./DecisionProvider.jsx";
 import axiosInstance, { errorMessage } from "../services/axiosInstance.js";
 
 export default function CourseNotes({ courseId, management = false, onChanged }) {
+  const decide = useDecision();
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [file, setFile] = useState(null);
@@ -47,11 +49,7 @@ export default function CourseNotes({ courseId, management = false, onChanged })
     } catch (e) { tab.close(); setError(errorMessage(e)); }
   };
   const remove = async (note) => {
-    if (!window.confirm(`Remove “${note.filename}” from this course?`)) return;
-    setBusy(true); setError(""); setNotice("");
-    try { await axiosInstance.delete(`/courses/${courseId}/notes/${note.id}`); setNotice("PDF removed."); await onChanged?.(); }
-    catch (e) { setError(errorMessage(e)); }
-    finally { await load(); setBusy(false); }
+    if (await decide({ title: "Remove this PDF?", body: `“${note.filename}” will be removed from this course. Students will lose access to this handout.`, destructive: true, confirmLabel: "Remove PDF", onConfirm: () => axiosInstance.delete(`/courses/${courseId}/notes/${note.id}`) })) { setNotice("PDF removed."); await onChanged?.(); await load(); }
   };
   return <section className="card mt-8" aria-labelledby="course-notes-title">
     <div className="flex flex-wrap items-center justify-between gap-3"><h2 id="course-notes-title" className="text-xl font-semibold">Course notes</h2><button className="btn-secondary text-xs" disabled={loading || busy} onClick={() => { setError(""); load(); }}>Refresh notes</button></div>

@@ -1,12 +1,14 @@
 # LessonLoop frontend
 
-The React app for LessonLoop: instructors manage courses, MP4 videos and assignments; students watch assigned lessons and track completion. Responsive light/dark screens use system typography and a restrained blue accent.
+The React app for LessonLoop: instructors manage courses, MP4 videos and assignments; students watch assigned lessons and track completion. Responsive light/dark screens use system typography and a restrained teal accent.
 
 Admin-only instructor provisioning, access controls, user/course/video oversight and recoverable course archive/restore are now included. Read [admin management and rollout](docs/admin-management.md). Existing instructors/data are preserved; the operator runs the protected first-admin setup.
 
 Backend: [BondeYash/learn-loop-backend](https://github.com/BondeYash/learn-loop-backend).
 
 Course creation is now details → lessons/PDF notes → assign students, without a separate required publish step. Owners/admins can add private course handouts; assigned students can open/download ready PDFs. Dashboards/course screens include accessible light/dark loading skeletons and real retry/empty states. See [current flow, limits, rollout and checks](docs/course-notes.md).
+
+Reference-led dashboard/course design, private course thumbnail upload/replace and accessible in-app dialogs are included. See [behavior, verification and rollout](docs/design-and-thumbnails.md).
 
 ## Run locally
 
@@ -16,7 +18,7 @@ Keep `VITE_API_URL=/api`; Vite proxies local API requests. All VITE variables ar
 
 ## Video flow
 
-Upload precompressed H.264/AAC MP4 only (up to 2 GiB/four hours). Convert WebM/MOV externally. The browser validates the container header and decodes the first frame, then sends the file directly to private R2 using a temporary URL from the API. This is not full codec/security validation; target-browser compatibility still matters.
+Upload precompressed H.264/AAC MP4 only (up to 2 GiB/four hours). Convert WebM/MOV/MKV externally and preview with sound. The browser validates the container header and decodes the first frame, then sends the file directly to private R2 using a temporary URL from the API. This is not full codec/security validation; target-browser compatibility still matters.
 
 Progress, cancel, retry and rechecking a completed upload are available. Interrupted single PUT transfers restart from the beginning; there is no chunk resume or server conversion. The backend verifies object metadata/header and freezes the ready object under a different key.
 

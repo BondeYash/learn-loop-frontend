@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useDecision } from "../../components/DecisionProvider.jsx";
 import { getCategories } from "../../services/courseService.js";
 import axiosInstance, { errorMessage } from "../../services/axiosInstance.js";
 
 export default function CreateCoursePage() {
+  const decide = useDecision();
   const { id } = useParams(); const editing = Boolean(id);
   const isAdmin = useSelector((state) => state.auth.user?.role === "admin");
   const back = editing ? `/instructor/courses/${id}/curriculum` : isAdmin ? "/admin?tab=courses" : "/instructor/courses";
@@ -34,7 +36,7 @@ export default function CreateCoursePage() {
       navigate(`/instructor/courses/${data.data.course._id}/curriculum`, { replace: editing });
     } catch (e) { setError(errorMessage(e)); }
   };
-  const cancel = (event) => { if (isDirty && !window.confirm("Discard your unsaved course changes?")) event.preventDefault(); };
+  const cancel = async (event) => { if (!isDirty) return; event.preventDefault(); const to = event.currentTarget.getAttribute("href"); if (await decide({ title: "Discard unsaved changes?", body: "Your course details have not been saved. Leaving this page will discard your edits.", confirmLabel: "Discard changes", destructive: true })) navigate(to); };
   return <section className="mx-auto max-w-3xl"><Link to={back} onClick={cancel} className="text-sm text-primary-600 dark:text-primary-300">← Back to {editing ? "curriculum" : "courses"}</Link><p className="mt-7 text-xs font-medium uppercase tracking-[.14em] text-slate-500 dark:text-slate-400">Course details</p><h1 className="mt-3 text-3xl font-semibold">{editing ? "Edit course details" : "Create a course"}</h1><p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">{editing ? "Update the details students see. Curriculum and assignments are managed separately." : "Add the details below, upload lessons or PDF notes, then choose your students."}</p>
     {loading ? <p className="card mt-6" role="status">Loading course details…</p> : <form onSubmit={handleSubmit(submit)} className="card mt-6 space-y-5">
       {error && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{error}</p>}

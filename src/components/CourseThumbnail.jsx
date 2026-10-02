@@ -1,0 +1,18 @@
+import { useEffect, useRef, useState } from "react";
+import { ImagePlus } from "lucide-react";
+import CourseArtwork from "./CourseArtwork.jsx";
+import axiosInstance, { errorMessage } from "../services/axiosInstance.js";
+export default function CourseThumbnail({ course, onChanged }) {
+  const [file, setFile] = useState(null), [preview, setPreview] = useState(""), [busy, setBusy] = useState(false), [progress, setProgress] = useState(0), [error, setError] = useState(""), [notice, setNotice] = useState("");
+  const input = useRef(null), pending = useRef(false);
+  useEffect(() => { if (!file) { setPreview(""); return; } const url = URL.createObjectURL(file); setPreview(url); return () => URL.revokeObjectURL(url); }, [file]);
+  const choose = (event) => { const next = event.target.files?.[0]; setFile(null); setError(""); setNotice(""); if (!next) return; if (!/\.(jpe?g|png|webp)$/i.test(next.name) || !next.size || next.size > 5 * 1024 * 1024 || (next.type && !["image/jpeg", "image/png", "image/webp"].includes(next.type))) { setError("Choose a JPEG, PNG or WebP image up to 5 MB."); event.target.value = ""; return; } setFile(next); };
+  const upload = async (event) => {
+    event.preventDefault(); if (!file || pending.current) return; pending.current = true; setBusy(true); setError(""); setNotice(""); setProgress(0);
+    const form = new FormData(); form.append("thumbnail", file);
+    try { await axiosInstance.post(`/courses/${course._id}/thumbnail`, form, { headers: { "Content-Type": undefined }, timeout: 60000, onUploadProgress: (e) => setProgress(Math.round(e.loaded / (e.total || file.size) * 100)) }); await onChanged(); setFile(null); input.current.value = ""; setNotice("Course thumbnail saved."); }
+    catch (e) { setError(`${errorMessage(e)} Your selected image is kept for retry.`); }
+    finally { pending.current = false; setBusy(false); }
+  };
+  return <section className="card mt-6" aria-labelledby="thumbnail-title"><div className="thumbnail-editor"><div><div className="flex items-center gap-2"><ImagePlus size={19} className="text-primary-600 dark:text-primary-300" /><h2 id="thumbnail-title" className="text-lg font-semibold">Course thumbnail</h2></div><p id="thumbnail-help" className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Give your course a recognizable cover. Still JPEG, PNG or WebP, up to 5 MB and 16 megapixels. Wide images work best. Saved privately with your course.</p><form className="mt-4 space-y-3" onSubmit={upload}><label className="block text-sm font-medium">{course.thumbnail?.url ? "Replace course thumbnail" : "Choose course thumbnail"}<input ref={input} type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" disabled={busy} onChange={choose} aria-describedby="thumbnail-help" className="mt-2 block w-full text-sm" /></label><button className="btn-primary gap-2" disabled={busy || !file}><ImagePlus size={16} />{busy ? progress >= 100 ? "Checking image…" : "Uploading…" : "Save thumbnail"}</button>{busy && <progress className="block w-full" aria-label="Thumbnail upload progress" value={progress} max={100} />}</form>{error && <p role="alert" className="mt-3 text-sm text-red-700 dark:text-red-300">{error}</p>}{notice && <p role="status" className="mt-3 text-sm text-primary-700 dark:text-primary-200">{notice}</p>}</div><div><CourseArtwork course={course} src={preview} className="aspect-video rounded-xl" /><p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{file ? "Selected image preview · save to apply" : course.thumbnail?.url ? "Current course cover" : "Default cover · no image uploaded"}</p></div></div></section>;
+}

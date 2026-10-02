@@ -5,11 +5,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        // One blue accent with neutral surfaces.
+        // Teal from the supplied reference, with accessible text/button shades.
         primary: {
-          50: "#eff6ff", 100: "#dbeafe", 200: "#bfdbfe", 300: "#93c5fd",
-          400: "#60a5fa", 500: "#007aff", 600: "#0071e3", 700: "#0064ca",
-          800: "#004f9e", 900: "#003b76",
+          50: "#effbf8", 100: "#d5f4ec", 200: "#ace9dd", 300: "#76d8c8",
+          400: "#48bfb5", 500: "#24a99e", 600: "#087e76", 700: "#06665f",
+          800: "#0a514c", 900: "#103d39",
         },
         // Accent: warm amber — progress, achievement, certificates, streaks
         accent: {
@@ -30,8 +30,8 @@ export default {
           600: "#17805a",
         },
         surface: {
-          light: "#f5f5f7",
-          dark: "#101012",
+          light: "#f7faf9",
+          dark: "#101a1b",
         },
       },
       fontFamily: {

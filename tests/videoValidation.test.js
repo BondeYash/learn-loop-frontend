@@ -11,6 +11,6 @@ test("accepts MP4 brands and rejects QuickTime or WebM bytes", () => {
 test("renaming arbitrary content to MP4 does not pass validation", async () => {
   await assert.rejects(validateVideo(new File(["This is not an MP4 container or a video."], "renamed.mp4")), /file contents/);
 });
-test("WebM and MOV show external conversion guidance before any upload", async () => {
-  for (const name of ["video.webm", "video.mov"]) await assert.rejects(validateVideo(new File([header("isom")], name)), /Convert.*H.264.*AAC/);
+test("WebM, MOV and MKV show external conversion guidance before any upload", async () => {
+  for (const name of ["video.webm", "video.mov", "video.mkv"]) await assert.rejects(validateVideo(new File([header("isom")], name)), /Convert.*H.264.*AAC/);
 });
