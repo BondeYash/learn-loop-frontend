@@ -1,0 +1,15 @@
+# Frontend Stripe test flow
+
+Instructors/admins can set an INR course price in create/edit. INR 0 preserves free assigned access; paid courses require nomination plus a verified server payment. Existing courses are not repriced. Students see a paywall without lesson content or PDF controls, then use hosted Stripe **test** Checkout. The same active attempt is reused across retries; server-authoritative prices, safe Checkout URLs and pending-state checks prevent double submits or forged redirect success.
+
+All published assigned courses stay visible before payment. Locked cards show the price and Pay to unlock/Review payment action; pending, failed, expired, refund and dispute states come from the server. Verified paid cards unlock, while free courses retain their normal action. Refresh courses reloads these states; refunds/reversals relock the card without removing it. The dashboard only counts unlocked courses as ready to continue.
+
+The return route is `/payments/:orderId`. It reads authenticated server status, polls for up to about one minute and offers an explicit canonical **Check payment status** action. Only server `paid` state shows **Open course**. Canceled, failed, expired, refunded, disputed and reversed states remain visible; access is rechecked whenever content is requested. There is no artificial course-access expiry yet and no lifetime promise. No voluntary refund UI is included.
+
+No Stripe key is bundled into the frontend. Keep `VITE_API_URL=/api` and existing proxy settings. The backend holds `STRIPE_SECRET_KEY` (`sk_test_`) and `STRIPE_WEBHOOK_SECRET` privately, and its `CLIENT_URL` is the verified frontend origin. The public webhook is the existing backend origin plus `/api/payments/webhook`; it is not a frontend route. The SDK/API contract is stripe 23.0.0 / 2026-09-30.endive. See backend `docs/stripe-test-payments.md` for event subscriptions, configuration, server rules and hosted sandbox verification.
+
+Typography uses installed Segoe UI/Noto Sans/DejaVu Sans system fonts with a 17px root size, slightly larger inputs/buttons/navigation and the existing heading hierarchy. No font service/download or broad visual redesign is introduced. Light/dark/mobile forms and dialogs are checked.
+
+Local checks: `npm run lint`, `npm test`, `npm run build`, `npm run check:cloudflare` (dry-run only). Optional `python3 tests/payments_browser.py` uses installed Python Playwright, Chrome and ffmpeg on a loopback Vite server. API responses and the Stripe page are fixtures; all other external requests are blocked. Set `PLAYER_EVIDENCE_DIR` for screenshots. Existing design/dialog, PDF/course and student player harnesses are also retained. These local checks do not verify real hosted Stripe sandbox checkout, deployed cookie/proxy behavior, webhook delivery or user credentials.
+
+Browser conversion remains paused in its separate recoverable stash; no converter dependency, worker, assets, source bundle or helper is part of this release. MP4-only direct private R2 upload remains the published behavior.

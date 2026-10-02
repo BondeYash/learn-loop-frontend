@@ -35,8 +35,8 @@ export default {
         },
       },
       fontFamily: {
-        display: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Helvetica Neue", "Arial", "sans-serif"],
-        body: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Helvetica Neue", "Arial", "sans-serif"],
+        display: ["Segoe UI Variable", "Segoe UI", "Noto Sans", "DejaVu Sans", "sans-serif"],
+        body: ["Segoe UI Variable", "Segoe UI", "Noto Sans", "DejaVu Sans", "sans-serif"],
       },
       borderRadius: {
         xl: "0.875rem",

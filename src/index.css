@@ -5,6 +5,7 @@
 @layer base {
   html {
     @apply font-body scroll-smooth antialiased text-slate-900;
+    font-size: 17px;
   }
   h1, h2, h3, h4 {
     @apply font-display tracking-tight;
@@ -51,7 +52,7 @@ body { background: #f7faf9; }
 .dark body, .dark .workspace-shell, .dark .auth-shell { background: #101a1b; color: #edf6f4; }
 .workspace-header { background: #fff; border-bottom: 1px solid #e0e9e6; box-shadow: 0 3px 16px -13px #17463a70; }
 .dark .workspace-header { background: #142325; border-color: #294044; }
-.workspace-nav { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 9px; color: #536b6e; font-size: 14px; font-weight: 500; transition: background .15s; }
+.workspace-nav { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 9px; color: #536b6e; font-size: 15px; font-weight: 500; transition: background .15s; }
 .workspace-nav:hover { background: #f1f7f5; color: #06665f; }
 .workspace-nav-active { background: #e7f6f1; color: #06665f; }
 .dark .workspace-nav { color: #afc4c5; }
@@ -65,6 +66,7 @@ body { background: #f7faf9; }
 .dark .btn-secondary[aria-pressed="true"] { border-color: #50766b; background: #25473f; color: #b5f6e8; }
 .dark .input-field { background: #132224; border-color: #496367; }
 .btn-primary { box-shadow: 0 2px 5px #087e7622; }
+.btn-primary, .btn-secondary, .input-field { font-size: .94rem; line-height: 1.5; }
 .dark .btn-primary { background: #76d8c8; color: #103d39; }
 .dark .btn-primary:hover { background: #ace9dd; }
 .btn-danger { display: inline-flex; justify-content: center; align-items: center; border-radius: 8px; padding: 12px 20px; font-size: 14px; font-weight: 600; background: #b42332; color: #fff; }

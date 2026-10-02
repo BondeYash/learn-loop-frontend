@@ -8,25 +8,27 @@ import LoadingSkeleton from "../../components/LoadingSkeleton.jsx";
 import CourseNotes from "../../components/CourseNotes.jsx";
 import CourseArtwork from "../../components/CourseArtwork.jsx";
 import { getCourse } from "../../services/courseService.js";
+import CoursePayment from "../../components/CoursePayment.jsx";
 export default function CourseDetailsPage() {
   const { id } = useParams(), user = useSelector((state) => state.auth.user);
   const [data, setData] = useState(null), [selected, setSelected] = useState(null), [error, setError] = useState(""), [playError, setPlayError] = useState(""), [progress, setProgress] = useState({ completedLessons: [] }), [saving, setSaving] = useState(false);
   const content = useRef(null), pending = useRef(false);
+  const [paymentCourseId, setPaymentCourseId] = useState(null);
   const load = useCallback(async () => {
     try {
       const result = await getCourse(id);
       const saved = user.role === "student" ? (await axiosInstance.get(`/courses/${result.course._id}/progress`)).data.data.progress : { completedLessons: [] };
       const lessons = result.modules.flatMap((module) => module.lessons);
-      setData(result); setProgress(saved); setError("");
+      setData(result); setProgress(saved); setError(""); setPaymentCourseId(null);
       setSelected((current) => lessons.some((lesson) => lesson._id === current) ? current : lessons.find((lesson) => !saved.completedLessons.includes(lesson._id))?._id || lessons[0]?._id || null);
-    } catch (e) { setData(null); setError(errorMessage(e)); }
+    } catch (e) { setData(null); if (e.response?.data?.code === "PAYMENT_REQUIRED") { setPaymentCourseId(e.response.data.courseId || id); setError(""); } else { setPaymentCourseId(null); setError(errorMessage(e)); } }
   }, [id, user.role]);
   useEffect(() => { load(); const timer = setInterval(load, 15000); return () => clearInterval(timer); }, [load]);
   const lessons = data?.modules.flatMap((module) => module.lessons) || [], lesson = lessons.find((item) => item._id === selected), ready = lesson?.video?.status === "ready";
   const next = lessons.find((item) => item._id !== selected && !progress.completedLessons.includes(item._id));
   const focusContent = () => { content.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }); content.current?.focus({ preventScroll: true }); };
   const markComplete = async () => { if (pending.current) return; pending.current = true; setSaving(true); try { setProgress((await axiosInstance.post(`/lessons/${lesson._id}/complete`)).data.data.progress); setPlayError(""); } catch (e) { setPlayError(errorMessage(e)); } finally { pending.current = false; setSaving(false); } };
-  return <section><Link className="text-sm text-primary-600 dark:text-primary-300" to="/dashboard">← Dashboard</Link>{error && <div className="card mt-5" role="alert"><p className="text-red-700 dark:text-red-300">{error}</p><button className="btn-secondary mt-4" onClick={load}>Retry course</button></div>}{!data ? !error && <LoadingSkeleton variant="detail" label="Loading course…" /> : <>
+  return <section><Link className="text-sm text-primary-600 dark:text-primary-300" to="/dashboard">← Dashboard</Link>{paymentCourseId && <CoursePayment key={paymentCourseId} courseId={paymentCourseId} onAccess={load} />}{error && <div className="card mt-5" role="alert"><p className="text-red-700 dark:text-red-300">{error}</p><button className="btn-secondary mt-4" onClick={load}>Retry course</button></div>}{!data ? !error && !paymentCourseId && <LoadingSkeleton variant="detail" label="Loading course…" /> : <>
     <header className="card course-overview mt-5 !p-6 sm:!p-8"><div className="min-w-0"><p className="eyebrow">{data.course.category?.name || "Your course"}</p><h1 className="mt-3 break-words text-3xl font-semibold sm:text-4xl">{data.course.title}</h1><p className="mt-4 line-clamp-3 text-sm leading-7 text-slate-600 dark:text-slate-300">{data.course.description}</p><div className="course-meta mt-5">{data.course.instructor?.name && <span><UserRound size={15} />{data.course.instructor.name}</span>}<span className="capitalize"><GraduationCap size={15} />{data.course.level || "beginner"}</span><span><Globe2 size={15} />{data.course.language || "English"}</span><span><BookOpen size={15} />{lessons.length} available {lessons.length === 1 ? "lesson" : "lessons"}</span></div><div className="mt-6 flex flex-wrap items-center gap-3">{lessons.length > 0 ? <button className="btn-primary gap-2" onClick={focusContent}><Play size={16} />{user.role !== "student" ? "Preview lessons" : progress.percentage === 100 ? "Review course" : progress.completedLessons.length ? "Continue learning" : "Start learning"}</button> : <a className="btn-primary" href="#course-notes-title">Explore course notes</a>}<span className="text-xs text-slate-500 dark:text-slate-400">{user.role === "student" ? "Available to your assigned account" : "Instructor preview"}</span></div>{user.role === "student" && lessons.length > 0 && <div className="mt-5 max-w-sm"><div className="mb-2 flex justify-between text-xs text-slate-500 dark:text-slate-400"><span>Your lesson progress</span><span>{progress.percentage || 0}% complete</span></div><progress className="course-progress" aria-label="Course completion" value={progress.percentage || 0} max={100} /></div>}</div><CourseArtwork course={data.course} className="aspect-[4/3] rounded-xl" /></header>
     <div className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]"><section ref={content} tabIndex={-1} className="card course-content-panel min-w-0"><p className="eyebrow">{lesson ? "Your lesson" : "Learning materials"}</p><h2 className="mb-5 mt-2 text-xl font-semibold">{lesson?.title || "Course materials"}</h2>
       {ready && <PrivateVideoPlayer key={lesson._id} lessonId={lesson._id} title={lesson.title} studentId={user.role === "student" ? user.id : undefined} />}

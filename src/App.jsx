@@ -18,6 +18,7 @@ import StudentDashboardPage from "./pages/StudentDashboardPage.jsx";
 import { fetchCurrentUser, sessionExpired } from "./slices/authSlice.js";
 import ChangePasswordPage from "./pages/auth/ChangePasswordPage.jsx";
 import AdminPage from "./pages/admin/AdminPage.jsx";
+import PaymentStatusPage from "./pages/PaymentStatusPage.jsx";
 function Home() {
   return <main className="auth-shell relative flex min-h-screen flex-col items-center justify-center gap-5 px-6 text-center"><div className="absolute right-5 top-5"><ThemeToggle /></div><Brand large /><h1 className="max-w-2xl font-display text-4xl font-semibold tracking-[-0.04em] sm:text-6xl">A little progress.<br /><span className="text-slate-500 dark:text-slate-400">A world of possibility.</span></h1><p className="max-w-lg text-slate-600 dark:text-slate-300">A focused place to teach and learn. Instructors share video courses with their students; students find their assigned learning in one place.</p><div className="flex gap-3"><Link className="btn-primary" to="/dashboard">Go to dashboard</Link><Link className="btn-secondary" to="/register">Create an account</Link></div></main>;
 }
@@ -49,7 +50,7 @@ export default function App() {
     <Route element={<ProtectedRoute />}><Route element={<DashboardLayout />}>
       <Route path="/dashboard" element={<DashboardIndex />} />
       <Route path="/courses" element={<CoursesPage />} /><Route path="/courses/:id" element={<CourseDetailsPage />} />
-      <Route element={<ProtectedRoute roles={["student"]} />}><Route path="/student" element={<StudentDashboardPage />} /></Route>
+      <Route element={<ProtectedRoute roles={["student"]} />}><Route path="/student" element={<StudentDashboardPage />} /><Route path="/payments/:id" element={<PaymentStatusPage />} /></Route>
       <Route element={<ProtectedRoute roles={["instructor", "admin"]} />}>
         <Route path="/instructor" element={<MyCoursesPage />} /><Route path="/instructor/courses" element={<MyCoursesPage />} />
         <Route path="/instructor/courses/new" element={<CreateCoursePage />} /><Route path="/instructor/courses/:id/curriculum" element={<CurriculumPage />} />
