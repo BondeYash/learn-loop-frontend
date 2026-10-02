@@ -1,5 +1,6 @@
 """Isolated frontend payment/price/typography checks; no Stripe account requests."""
 import re
+import os
 from urllib.parse import urlparse
 from playwright.sync_api import expect
 import student_player_browser as harness
@@ -7,12 +8,14 @@ import student_player_browser as harness
 
 def run_checks(browser, media, evidence):
     contexts, unexpected, errors = [], [], []
-    def fixture(role="student",theme="light",width=1280,test_mode=True):
+    def fixture(role="student",theme="light",width=1280,test_mode=True,free_course=False,assigned=True,stale_paywall=False):
         ctx=browser.new_context(viewport={"width":width,"height":900},service_workers="block");contexts.append(ctx)
         ctx.add_init_script(f"localStorage.setItem('lessonloop_theme','{theme}')")
         page=ctx.new_page();page.on("pageerror",lambda e:errors.append(str(e)))
         course={"_id":"course-fixture","title":"A paid learning course","description":"Synthetic assigned course","price":123.45,"instructor":{"name":"Fixture teacher"},"category":{"_id":"category-fixture","name":"General"},"isPublished":True}
         state={"paid":False,"status":"pending","ready":True,"failure":True,"unsafe":False,"calls":[],"keys":[],"price":12345,"hold":False,"held":[],"price_change":False,"has_order":False,"wrong_mode":False,"readiness_mode":test_mode}
+        if free_course:course["price"]=0
+        state["stale_paywall"]=stale_paywall
         order={"id":"order-fixture","courseId":"course-fixture","title":course["title"],"amountMinor":12345,"currency":"inr","testMode":test_mode,"status":"pending"}
         def route(r):
             request,u=r.request,urlparse(r.request.url)
@@ -21,20 +24,25 @@ def run_checks(browser, media, evidence):
             if not u.path.startswith("/api/"):r.continue_();return
             state["calls"].append((request.method,u.path))
             if u.path=="/api/auth/me":answer={"user":{"id":harness.STUDENT_ID,"name":"Fixture learner","role":role,"status":"active"}}
-            elif u.path in ["/api/courses","/api/enrollments/me"]:
-                paid={**course,"payment":{"required":not state["paid"],"paid":state["paid"],"status":"paid" if state["paid"] else state["status"] if state["has_order"] else "required","amountMinor":state["price"],**({"orderId":"order-fixture"} if state["has_order"] else {})}}
+            elif u.path in ["/api/courses","/api/enrollments/me"] and request.method=="GET":
+                paid={**course,"payment":{"required":course["price"]>0 and not state["paid"],"paid":state["paid"],"status":"free" if course["price"]==0 else "paid" if state["paid"] else state["status"] if state["has_order"] else "required","amountMinor":state["price"] if course["price"]>0 else 0,**({"orderId":"order-fixture"} if state["has_order"] else {})}}
                 free={**course,"_id":"free-fixture","title":"A free assigned course","price":0,"payment":{"required":False,"paid":False,"status":"free","amountMinor":0}}
                 answer={"courses":[paid,free]} if u.path=="/api/courses" else {"enrollments":[{"_id":"assigned-paid","course":paid,"status":"active"},{"_id":"assigned-free","course":free,"status":"active"}]}
             elif u.path=="/api/categories":answer={"categories":[course["category"]]}
+            elif u.path=="/api/courses" and request.method=="POST":
+                course.update(request.post_data_json);course["category"]={"_id":"category-fixture","name":"General"};answer={"course":course}
             elif u.path=="/api/courses/mine/course-fixture":answer={"course":course,"modules":[]}
-            elif u.path=="/api/courses/course-fixture" and request.method=="PATCH":course.update(request.post_data_json);answer={"course":course}
+            elif u.path=="/api/courses/course-fixture" and request.method=="PATCH":
+                course.update(request.post_data_json);course["category"]={"_id":"category-fixture","name":"General"};answer={"course":course}
             elif u.path=="/api/courses/course-fixture":
-                if not state["paid"]:r.fulfill(status=402,json={"message":"Payment is required","code":"PAYMENT_REQUIRED","courseId":"course-fixture"});return
+                if not assigned:r.fulfill(status=403,json={"message":"This course is not assigned to your account."});return
+                if course["price"]>0 and not state["paid"] or state["stale_paywall"]:
+                    r.fulfill(status=402,json={"message":"Payment is required","code":"PAYMENT_REQUIRED","courseId":"course-fixture"});return
                 answer={"course":course,"modules":[{"_id":"module-fixture","title":"Lessons","lessons":[{"_id":"lesson-fixture","title":"Paid lesson","contentType":"text","content":"Private lesson content after verified payment"}]}]}
             elif u.path.endswith("/progress"):answer={"progress":{"completedLessons":[],"percentage":0}}
             elif u.path.endswith("/notes"):answer={"notes":[]}
             elif u.path.endswith("/assignments"):answer={"assignments":[]}
-            elif u.path=="/api/payments/courses/course-fixture/quote":answer={"quote":{"courseId":"course-fixture","title":course["title"],"amountMinor":state["price"],"currency":"inr","testMode":test_mode,"paid":state["paid"],"requiresPayment":not state["paid"]},"readiness":{"configured":state["ready"],"testMode":state["readiness_mode"]}}
+            elif u.path=="/api/payments/courses/course-fixture/quote":answer={"quote":{"courseId":"course-fixture","title":course["title"],"amountMinor":state["price"] if course["price"]>0 else 0,"currency":"inr","testMode":test_mode,"paid":state["paid"],"requiresPayment":course["price"]>0 and not state["paid"]},"readiness":{"configured":state["ready"],"testMode":state["readiness_mode"]}}
             elif u.path=="/api/payments/checkout":
                 state["has_order"]=True
                 state["keys"].append(request.headers["idempotency-key"])
@@ -50,7 +58,7 @@ def run_checks(browser, media, evidence):
         ctx.route("**/*",route)
         return page,state,course
     try:
-        for theme,test_mode in [("light",True),("dark",True),("light",False),("dark",False)]:
+        for theme,test_mode in [] if os.environ.get("PAYMENT_BROWSER_FOCUS")=="free" else [("light",True),("dark",True),("light",False),("dark",False)]:
             mode="test" if test_mode else "live"
             checkout_label="Continue to test checkout" if test_mode else "Continue to payment"
             page,state,course=fixture(theme=theme,width=320,test_mode=test_mode)
@@ -100,6 +108,7 @@ def run_checks(browser, media, evidence):
 
         teacher,state,course=fixture(role="instructor",width=390)
         teacher.goto(harness.ORIGIN+"/instructor/courses/course-fixture/edit")
+        expect(teacher.get_by_role("radio",name=re.compile("^Paid"))).to_be_checked()
         price=teacher.get_by_label("Course price (INR)");expect(price).to_have_value("123.45")
         price.fill("499.95");teacher.get_by_role("button",name="Save course details").click();teacher.wait_for_url("**/curriculum")
         assert str(course["price"])=="499.95";teacher.goto(harness.ORIGIN+"/instructor/courses/course-fixture/edit");expect(price).to_have_value("499.95")
@@ -107,6 +116,38 @@ def run_checks(browser, media, evidence):
         price.fill("1.001");teacher.get_by_role("button",name="Save course details").click();assert teacher.url.endswith("/edit")
         teacher.screenshot(path=str(evidence/"instructor-price-mobile.png"),full_page=True)
         harness.check(True,"instructor INR price persists, reloads and invalid decimal precision stays in form; mobile wraps")
+        for theme in ["light","dark"]:
+            teacher,state,course=fixture(role="instructor",theme=theme,width=320)
+            teacher.goto(harness.ORIGIN+"/instructor/courses/course-fixture/edit")
+            teacher.get_by_role("radio",name=re.compile("^Free")).check();expect(teacher.get_by_label("Course price (INR)")).not_to_be_visible()
+            teacher.screenshot(path=str(evidence/f"instructor-free-{theme}-mobile.png"),full_page=True)
+            teacher.get_by_role("button",name="Save course details").click();teacher.wait_for_url("**/curriculum")
+            assert course["price"]==0 and "pricingType" not in course
+            teacher.goto(harness.ORIGIN+"/instructor/courses/course-fixture/edit");expect(teacher.get_by_role("radio",name=re.compile("^Free"))).to_be_checked()
+            teacher.get_by_role("radio",name=re.compile("^Paid")).check();price=teacher.get_by_label("Course price (INR)");expect(price).to_be_visible()
+            price.fill("0");teacher.get_by_role("button",name="Save course details").click();assert teacher.url.endswith("/edit")
+            price.fill("199.99");teacher.get_by_role("button",name="Save course details").click();teacher.wait_for_url("**/curriculum");assert str(course["price"])=="199.99"
+            teacher.goto(harness.ORIGIN+"/instructor/courses/new");expect(teacher.get_by_role("radio",name=re.compile("^Free"))).to_be_checked()
+            teacher.get_by_label("Course title",exact=True).fill("A new free course");teacher.get_by_label("Description",exact=True).fill("Synthetic free creation")
+            teacher.get_by_role("button",name="Continue to content").click();teacher.wait_for_url("**/curriculum");assert course["price"]==0
+            assert teacher.evaluate("document.documentElement.scrollWidth<=innerWidth")
+            learner,state,course=fixture(theme=theme,width=320,free_course=True,test_mode=False);state["ready"]=False
+            learner.goto(harness.ORIGIN+"/student")
+            expect(learner.locator(".course-card").filter(has_text="A paid learning course").get_by_text("Free",exact=True)).to_be_visible()
+            learner.goto(harness.ORIGIN+"/courses/course-fixture");expect(learner.get_by_text("Private lesson content after verified payment",exact=True)).to_be_visible()
+            assert not any(path.startswith("/api/payments/") for _,path in state["calls"])
+            harness.check(True,f"{theme}: explicit Free/Paid edit and free creation persist; paid zero rejected; free assigned content opens without payment/configuration requests; 320px wraps")
+        learner,state,_=fixture(free_course=True,test_mode=False,stale_paywall=True);state["ready"]=False
+        learner.goto(harness.ORIGIN+"/courses/course-fixture");expect(learner.get_by_text("Free",exact=True)).to_be_visible()
+        expect(learner.get_by_text("Checkout is being configured. Please try again later.")).not_to_be_visible()
+        expect(learner.get_by_role("button",name="Continue to payment")).not_to_be_visible()
+        state["stale_paywall"]=False;learner.get_by_role("button",name="Open course",exact=True).click();expect(learner.get_by_text("Private lesson content after verified payment",exact=True)).to_be_visible()
+        assert not any(path=="/api/payments/checkout" for _,path in state["calls"])
+        learner,state,_=fixture(free_course=True,assigned=False);learner.goto(harness.ORIGIN+"/courses/course-fixture")
+        expect(learner.get_by_role("alert")).to_contain_text("not assigned")
+        expect(learner.get_by_text("Private lesson content after verified payment",exact=True)).not_to_be_visible()
+        assert not any(path.startswith("/api/payments/") for _,path in state["calls"])
+        harness.check(True,"stale paywall switches to free access without Stripe warnings/submission; unassigned free course remains denied")
         checkout_label="Continue to test checkout"
         page,state,_=fixture();state["ready"]=False;page.goto(harness.ORIGIN+"/courses/course-fixture")
         expect(page.get_by_role("button",name=checkout_label)).to_be_disabled();expect(page.get_by_text("Checkout is being configured. Please try again later.")).to_be_visible()
