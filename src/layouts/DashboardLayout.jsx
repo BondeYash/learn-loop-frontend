@@ -17,7 +17,7 @@ export default function DashboardLayout() {
   const handleLogout = async () => { const result = await dispatch(logout()); if (logout.fulfilled.match(result)) navigate("/login", { replace: true }); else toast.error(result.payload || "Sign out failed. Check your connection and retry."); };
   const dashboardPath = paths[user?.role] || "/dashboard";
   const managementPath = user?.role === "admin" ? "/admin/courses/upload" : user?.role === "instructor" ? "/instructor/courses" : "/courses";
-  const managementLabel = user?.role === "admin" ? "Create course" : user?.role === "instructor" ? "My courses" : "Assigned courses";
+  const managementLabel = user?.role === "admin" ? "Create course" : user?.role === "instructor" ? "My courses" : "All courses";
   const navClass = ({ isActive }) => `workspace-nav ${isActive ? "workspace-nav-active" : ""}`;
   return <div className="workspace-shell min-h-screen">
     <header className="workspace-header"><div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">

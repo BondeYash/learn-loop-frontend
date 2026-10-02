@@ -35,7 +35,7 @@ def run_checks(browser, media, evidence):
             elif u.path=="/api/courses/course-fixture" and request.method=="PATCH":
                 course.update(request.post_data_json);course["category"]={"_id":"category-fixture","name":"General"};answer={"course":course}
             elif u.path=="/api/courses/course-fixture":
-                if not assigned:r.fulfill(status=403,json={"message":"This course is not assigned to your account."});return
+                if not assigned:r.fulfill(json={"data":{"course":course,"modules":[{"_id":"module-fixture","title":"Lessons","lessons":[{"_id":"lesson-fixture","title":"Paid lesson","contentType":"video","locked":True}]}],"access":{"assigned":False,"videos":False}}});return
                 if course["price"]>0 and not state["paid"] or state["stale_paywall"]:
                     r.fulfill(status=402,json={"message":"Payment is required","code":"PAYMENT_REQUIRED","courseId":"course-fixture"});return
                 answer={"course":course,"modules":[{"_id":"module-fixture","title":"Lessons","lessons":[{"_id":"lesson-fixture","title":"Paid lesson","contentType":"text","content":"Private lesson content after verified payment"}]}]}
@@ -144,10 +144,11 @@ def run_checks(browser, media, evidence):
         state["stale_paywall"]=False;learner.get_by_role("button",name="Open course",exact=True).click();expect(learner.get_by_text("Private lesson content after verified payment",exact=True)).to_be_visible()
         assert not any(path=="/api/payments/checkout" for _,path in state["calls"])
         learner,state,_=fixture(free_course=True,assigned=False);learner.goto(harness.ORIGIN+"/courses/course-fixture")
-        expect(learner.get_by_role("alert")).to_contain_text("not assigned")
+        expect(learner.get_by_text("Videos unlock after this instructor gives you access")).to_be_visible()
+        expect(learner.locator("video")).to_have_count(0)
         expect(learner.get_by_text("Private lesson content after verified payment",exact=True)).not_to_be_visible()
-        assert not any(path.startswith("/api/payments/") for _,path in state["calls"])
-        harness.check(True,"stale paywall switches to free access without Stripe warnings/submission; unassigned free course remains denied")
+        assert not any(path.startswith("/api/payments/") or path.endswith("/playback") or path.endswith("/notes") for _,path in state["calls"])
+        harness.check(True,"stale paywall switches to free access without Stripe warnings/submission; unassigned students see the course without its video")
         checkout_label="Continue to test checkout"
         page,state,_=fixture();state["ready"]=False;page.goto(harness.ORIGIN+"/courses/course-fixture")
         expect(page.get_by_role("button",name=checkout_label)).to_be_disabled();expect(page.get_by_text("Checkout is being configured. Please try again later.")).to_be_visible()

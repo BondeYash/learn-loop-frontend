@@ -128,7 +128,7 @@ def run_checks(browser, _media, evidence):
         expect(page.get_by_role("heading", name="handout-2.pdf")).to_be_visible()
         page.get_by_label("Student email addresses").fill("learner@example.invalid")
         page.get_by_role("button", name="Assign course", exact=True).click()
-        expect(page.get_by_text("Available to assigned students", exact=False)).to_be_visible()
+        expect(page.get_by_text("Visible to all students. Videos open for assigned students", exact=False)).to_be_visible()
         harness.check(len(state["notes"]) == 2, "course creation, multiple PDFs and assignment complete without publication step")
         for theme in ["light", "dark"]:
             if theme == "dark": page.get_by_role("button", name="Switch to dark theme").click()
@@ -149,7 +149,7 @@ def run_checks(browser, _media, evidence):
             popup.close()
         harness.check(state["links"][-2:] == ["false", "true"], "Open and Download request their corresponding signed dispositions")
 
-        for path, role, api, label in [("/courses", "student", "/api/courses", "courses"), ("/student", "student", "/api/enrollments/me", "dashboard"), ("/instructor/courses", "instructor", "/api/courses/mine", "instructor"), ("/courses/course-fixture", "student", "/api/courses/course-fixture", "detail"), ("/admin", "admin", "/api/admin/users", "admin")]:
+        for path, role, api, label in [("/courses", "student", "/api/courses", "courses"), ("/student", "student", "/api/courses", "dashboard"), ("/instructor/courses", "instructor", "/api/courses/mine", "instructor"), ("/courses/course-fixture", "student", "/api/courses/course-fixture", "detail"), ("/admin", "admin", "/api/admin/users", "admin")]:
             for theme in ["light", "dark"]:
                 skeleton, _, pending = fixture(role, theme, api)
                 skeleton.goto(ORIGIN + path)
@@ -171,7 +171,7 @@ def run_checks(browser, _media, evidence):
         empty.get_by_role("button", name="Retry courses").click()
         expect(empty.locator(".skeleton").first).to_be_visible()
         pending.pop().fulfill(json={"data": {"courses": []}})
-        expect(empty.get_by_text("No courses are available to your account yet.")).to_be_visible()
+        expect(empty.get_by_text("No published courses yet.")).to_be_visible()
         harness.check(True, "course-list retry resolves to an empty state")
         harness.check(not errors, f"no browser runtime errors: {errors}")
         harness.check(not unexpected, f"all requests isolated: {unexpected}")
