@@ -47,6 +47,18 @@ test("multiple Set-Cookie headers, including logout and Expires commas, survive 
   assert.equal(response.headers.get("Retry-After"), "60");
 });
 
+test("PDF multipart uploads preserve file bytes and the boundary through the Worker", async () => {
+  const form = new FormData(); form.append("uploadId", "synthetic-upload-id"); form.append("file", new Blob(["%PDF-1.4 synthetic handout"], { type: "application/pdf" }), "notes.pdf");
+  const upload = request("/api/courses/fixture/notes", { method: "POST", body: form, headers: { Cookie: "lms_session=synthetic", Origin: FRONTEND } });
+  const expected = await upload.clone().text();
+  const response = await handleRequest(upload, unusedAssets, async (_url, init) => {
+    assert.match(init.headers.get("Content-Type"), /^multipart\/form-data; boundary=/);
+    assert.equal(await new Response(init.body).text(), expected);
+    return Response.json({ data: { note: { status: "ready" } } }, { status: 201 });
+  });
+  assert.equal(response.status, 201);
+});
+
 test("HEAD and OPTIONS preserve methods without manufacturing bodies or an Origin", async () => {
   for (const method of ["HEAD", "OPTIONS"]) {
     const response = await handleRequest(request("/api/health", { method }), unusedAssets, async (_url, init) => {

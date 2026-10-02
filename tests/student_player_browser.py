@@ -72,6 +72,8 @@ def run_checks(browser, media, evidence):
                 data = COURSE
             elif url.path == "/api/courses/course-fixture/progress":
                 data = {"progress": {"completedLessons": [], "percentage": 0}}
+            elif url.path == "/api/courses/course-fixture/notes":
+                data = {"notes": []}
             elif url.path == "/api/lessons/lesson-fixture/playback":
                 state["count"] += 1
                 if state["denied"]:

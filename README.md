@@ -6,6 +6,8 @@ Admin-only instructor provisioning, access controls, user/course/video oversight
 
 Backend: [BondeYash/learn-loop-backend](https://github.com/BondeYash/learn-loop-backend).
 
+Course creation is now details → lessons/PDF notes → assign students, without a separate required publish step. Owners/admins can add private course handouts; assigned students can open/download ready PDFs. Dashboards/course screens include accessible light/dark loading skeletons and real retry/empty states. See [current flow, limits, rollout and checks](docs/course-notes.md).
+
 ## Run locally
 
 Use Node.js 22.12+. From this repository root, run `npm ci`, copy `.env.example` to `.env` only if absent, then `npm run dev -- --host 127.0.0.1 --strictPort`. Start the backend separately on port 5000. Open http://localhost:5173. No parent client/server directory is needed.
@@ -24,7 +26,7 @@ Student playback hides supported download actions and shows a partial learner-co
 
 ## Verify
 
-Run `npm run lint`, `npm test`, `npm run build` and `npm audit`. Seventeen tests cover authentication races, MP4 validation and the Worker proxy, including cookie preservation, CSRF headers, forwarding-header sanitization, fixed routing, unsafe redirects and no-store behavior. They are unit tests, not deployed-browser tests.
+Run `npm run lint`, `npm test`, `npm run build` and `npm audit`. Eighteen checks cover authentication races, MP4 validation and the Worker proxy, including multipart PDF preservation, cookies, CSRF headers, forwarding-header sanitization, fixed routing, unsafe redirects and no-store behavior. They are unit tests, not deployed-browser tests.
 
 The development API must be configured for private R2 and Atlas/local MongoDB. Apply [local CORS](docs/r2-local-cors.json) in the R2 bucket dashboard; keep the bucket private. Cloudflare Workers Static Assets deployment and a fixed same-origin `/api` proxy to the live Render API are configured in `wrangler.jsonc` and `worker/index.js`. See [exact deployment settings](docs/deployment.md). Run `npm run check:cloudflare` after building for a non-deploying bundle check. Actual deployed origins must be configured explicitly. Cross-site API cookies are not the supported setup.
 
