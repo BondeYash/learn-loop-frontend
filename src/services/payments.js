@@ -4,8 +4,8 @@ export function isStripeCheckoutUrl(value) {
   try { const url = new URL(value); return url.protocol === "https:" && url.hostname === "checkout.stripe.com" && !url.username && !url.password && !url.port; }
   catch { return false; }
 }
-export async function createCheckout(courseId, quotedAmountMinor, attempt, signal) {
+export async function createCheckout(courseId, quotedAmountMinor, attempt, testMode, signal) {
   const { data } = await axiosInstance.post("/payments/checkout", { courseId, quotedAmountMinor }, { signal, headers: { "Idempotency-Key": attempt } });
-  if (data.data.order?.testMode !== true || !isStripeCheckoutUrl(data.data.url)) throw new Error("The server did not return a valid Stripe test checkout.");
+  if (typeof testMode !== "boolean" || data.data.order?.testMode !== testMode || !isStripeCheckoutUrl(data.data.url)) throw new Error("The server did not return a valid Stripe checkout for the displayed mode. Refresh the price before retrying.");
   return data.data;
 }

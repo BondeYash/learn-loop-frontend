@@ -15,14 +15,15 @@ export default function CoursePayment({ courseId, onAccess }) {
   const pay = async () => {
     if (pending.current || !data?.quote) return;
     pending.current = true; setBusy(true); setError("");
-    try { const checkout = await createCheckout(courseId, data.quote.amountMinor, attempt.current); window.location.assign(checkout.url); }
+    try { const checkout = await createCheckout(courseId, data.quote.amountMinor, attempt.current, data.quote.testMode); window.location.assign(checkout.url); }
     catch (e) { if (e.response?.status === 409) { attempt.current = crypto.randomUUID(); await load(); } setError(errorMessage(e)); }
     finally { pending.current = false; setBusy(false); }
   };
-  return <section className="card mt-5 max-w-2xl"><p className="eyebrow">Assigned course</p><h1 className="mt-3 text-2xl font-semibold">{data?.quote.title || "Payment required"}</h1><p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">Your instructor has assigned this course. Payment is required before you can open its lessons and PDF notes.</p><p className="mt-3 text-sm font-semibold text-primary-700 dark:text-primary-200">Stripe test mode — no real money is charged.</p>{data?.quote && <p className="mt-5 text-3xl font-semibold">{formatInr(data.quote.amountMinor)}</p>}
+  const validMode = typeof data?.quote.testMode === "boolean" && data?.readiness.testMode === data.quote.testMode;
+  return <section className="card mt-5 max-w-2xl"><p className="eyebrow">Assigned course</p><h1 className="mt-3 text-2xl font-semibold">{data?.quote.title || "Payment required"}</h1><p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">Your instructor has assigned this course. Payment is required before you can open its lessons and PDF notes.</p>{validMode && <p className="mt-3 text-sm font-semibold text-primary-700 dark:text-primary-200">{data.quote.testMode ? "Stripe test mode — no real money is charged." : "Live payment — your payment method will be charged in INR."}</p>}{data?.quote && <p className="mt-5 text-3xl font-semibold">{formatInr(data.quote.amountMinor)}</p>}
     {error && <p role="alert" className="mt-4 text-sm text-red-700 dark:text-red-300">{error}</p>}
     {!data && !error && <p role="status" className="mt-4 text-sm">Loading course price…</p>}
-    {data?.readiness.configured === false && <p className="mt-4 text-sm" role="status">Test checkout is being configured. Please try again later.</p>}
-    <div className="mt-6 flex flex-wrap gap-3">{data?.quote && (data.quote.paid || !data.quote.requiresPayment) ? <button className="btn-primary" onClick={onAccess}>Open course</button> : data && <button className="btn-primary" disabled={busy || !data.readiness.configured} onClick={pay}>{busy ? "Opening Stripe…" : "Continue to test checkout"}</button>}<button className="btn-secondary" disabled={busy} onClick={load}>Refresh price</button>{data?.quote.pendingOrderId && <Link className="btn-secondary" to={`/payments/${data.quote.pendingOrderId}`}>Review payment attempt</Link>}</div>
+    {data && (!data.readiness.configured || !validMode) && <p className="mt-4 text-sm" role="status">Checkout is being configured. Please try again later.</p>}
+    <div className="mt-6 flex flex-wrap gap-3">{data?.quote && (data.quote.paid || !data.quote.requiresPayment) ? <button className="btn-primary" onClick={onAccess}>Open course</button> : data && <button className="btn-primary" disabled={busy || !data.readiness.configured || !validMode} onClick={pay}>{busy ? "Opening Stripe…" : data.quote.testMode ? "Continue to test checkout" : "Continue to payment"}</button>}<button className="btn-secondary" disabled={busy} onClick={load}>Refresh price</button>{data?.quote.pendingOrderId && <Link className="btn-secondary" to={`/payments/${data.quote.pendingOrderId}`}>Review payment attempt</Link>}</div>
   </section>;
 }
