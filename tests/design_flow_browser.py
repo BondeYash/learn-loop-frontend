@@ -21,7 +21,7 @@ def run_checks(browser, media, evidence):
     def fixture(role="instructor", theme="light"):
         context = browser.new_context(viewport={"width":1280,"height":900}, service_workers="block")
         contexts.append(context)
-        context.add_init_script(f"localStorage.setItem('lessonloop_theme','{theme}')")
+        context.add_init_script(f"if (!localStorage.getItem('lessonloop_theme')) localStorage.setItem('lessonloop_theme','{theme}')")
         page = context.new_page()
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on("dialog", lambda dialog: (native_dialogs.append(dialog.type), dialog.dismiss()))
@@ -100,8 +100,8 @@ def run_checks(browser, media, evidence):
             dialog.get_by_role("button",name="Cancel",exact=True).click();assert sum(method=="DELETE" for method,_ in state["calls"])==before
             page.get_by_role("button",name="Remove guide.pdf").click();dialog.get_by_role("button",name="Remove PDF",exact=True).click()
             expect(page.get_by_text("No PDF notes yet.")).to_be_visible()
-            page.get_by_role("button",name="Remove access",exact=True).click();dialog=page.get_by_role("dialog",name="Remove course access?")
-            dialog.get_by_role("button",name="Remove access",exact=True).click();expect(page.get_by_text("No students assigned yet.")).to_be_visible()
+            page.get_by_role("button",name="Remove assignment",exact=True).click();dialog=page.get_by_role("dialog",name="Remove instructor assignment?")
+            dialog.get_by_role("button",name="Remove assignment",exact=True).click();expect(page.get_by_text("No students assigned yet.")).to_be_visible()
             harness.check(True,f"PDF/access destructive actions require in-app confirmation in {theme}")
 
             page.get_by_label("Actions for Renamed lesson",exact=True).click();page.get_by_role("button",name="Delete lesson",exact=True).click()

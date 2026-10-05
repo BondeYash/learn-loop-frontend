@@ -86,7 +86,7 @@ def run_checks(browser, media, evidence):
     try:
         page, state = fixture()
         page.goto(ORIGIN)
-        expect(page.get_by_role("heading", name="Build your knowledge. Prepare with purpose.")).to_be_visible()
+        expect(page.get_by_role("heading", name="Padhai, apne pace pe.")).to_be_visible()
         expect(page.get_by_role("heading", name=CARD["title"])).to_be_visible()
         harness.check(page.locator(".course-art").first.evaluate("element => element.getBoundingClientRect().height > 100"), "course cover has a visible frame even without an image")
         harness.check("only CCC" not in page.locator("body").inner_text(), "brand remains government-exam learning; courses come from inventory")
@@ -115,7 +115,7 @@ def run_checks(browser, media, evidence):
                 page.screenshot(path=str(evidence / f"public-course-{width}-{theme}.png"), full_page=True)
                 page.goto(ORIGIN + "/catalog"); expect(page.get_by_role("heading", name=CARD["title"])).to_be_visible(); fits(page, f"public catalog fits {width}px {theme}")
                 page.screenshot(path=str(evidence / f"public-catalog-{width}-{theme}.png"), full_page=True)
-                page.goto(ORIGIN); expect(page.get_by_role("heading", name="Build your knowledge. Prepare with purpose.")).to_be_visible(); fits(page, f"public home fits {width}px {theme}")
+                page.goto(ORIGIN); expect(page.get_by_role("heading", name="Padhai, apne pace pe.")).to_be_visible(); fits(page, f"public home fits {width}px {theme}")
                 page.screenshot(path=str(evidence / f"public-home-{width}-{theme}.png"), full_page=True)
                 page.goto(ORIGIN + "/catalog/synthetic-ccc"); expect(page.get_by_role("heading", name="About this course")).to_be_visible()
         state["fail_list"] = True; page.goto(ORIGIN + "/catalog")

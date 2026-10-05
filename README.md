@@ -1,6 +1,6 @@
 # LessonLoop frontend
 
-The React app for LessonLoop, a government-exam learning platform. Visitors can explore explicitly public courses and selected samples; instructors manage courses, MP4/text lessons, PDF notes and assignments; students open their available materials and track completion. Responsive light/dark screens use system typography and a restrained teal accent. See [public discovery, owner controls and rollout](docs/public-discovery.md).
+The React app for LessonLoop, a government-exam learning platform. Visitors can explore explicitly public courses and selected samples; instructors manage courses, MP4/text lessons, PDF notes and assignments; students open their available materials and track completion. Responsive light/dark screens use a colorful study style, self-hosted typography and romanized Hinglish in expressive headings. See [public discovery, owner controls and rollout](docs/public-discovery.md) and [visual design, accessibility and verification](docs/visual-refresh.md).
 
 Admin-only instructor provisioning, access controls, user/course/video oversight and recoverable course archive/restore are now included. Read [admin management and rollout](docs/admin-management.md). Existing instructors/data are preserved; the operator runs the protected first-admin setup.
 
@@ -34,7 +34,7 @@ The development API must be configured for private R2 and Atlas/local MongoDB. A
 
 ## Current verification scope
 
-The production build and lint pass. After the exact local bucket CORS rule was saved, the retained synthetic MP4 uploaded through the instructor browser, passed real R2 confirmation, was published and assigned, and played to the end in the student browser. Native seeking, completion persistence after reload and automatic signed URL renewal were verified. No production/load test or all-browser/all-codec guarantee is claimed. Captions, adaptive bitrate, quizzes, payments and certificates are outside scope.
+The earlier video verification used a retained synthetic MP4: after the exact local bucket CORS rule was saved, it uploaded through the instructor browser, passed real R2 confirmation, was published and assigned, and played to the end in the student browser. Native seeking, completion persistence after reload and automatic signed URL renewal were verified. No production/load test or all-browser/all-codec guarantee is claimed. Captions, adaptive bitrate, quizzes and certificates remain outside this implemented scope. Public enrollment and payment records are documented separately below; visual verification uses isolated local fixtures and does not establish deployed payment readiness.
 
 Live evidence and limits: [local verification record](docs/verification.md).
 
