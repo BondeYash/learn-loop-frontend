@@ -12,7 +12,7 @@ COURSE_ID = "507f1f77bcf86cd799439022"
 CATEGORY_ID = "507f1f77bcf86cd799439033"
 TEXT_ID = "507f1f77bcf86cd799439044"
 VIDEO_ID = "507f1f77bcf86cd799439055"
-CARD = {"id": COURSE_ID, "title": "Synthetic CCC course", "slug": "synthetic-ccc", "examName": "CCC", "summary": "Synthetic local fixture for computer knowledge.", "language": "Hindi", "level": "beginner", "amountMinor": 12050, "currency": "inr", "category": {"id": CATEGORY_ID, "name": "Computer qualification"}, "thumbnail": {"url": ""}, "instructorName": "Public teaching name", "hasPreview": True}
+CARD = {"id": COURSE_ID, "title": "Synthetic CCC course", "slug": "synthetic-ccc", "examName": "CCC", "summary": "Synthetic local fixture for computer knowledge.", "language": "Hindi", "level": "beginner", "amountMinor": 12050, "currency": "inr", "category": {"id": CATEGORY_ID, "name": "Computer qualification"}, "thumbnail": {"url": ""}, "instructorName": "Public teaching name", "hasPreview": True, "availability": {"enrollment": "public", "ready": True}}
 DETAIL = {"course": {**CARD, "description": "Owner-written fixture course details.", "audience": "Synthetic government-exam aspirants", "learningOutcomes": ["Synthetic learning outcome"], "requirements": [], "instructorBio": "Explicitly public teaching bio.", "support": {}, "policies": {}}, "modules": [{"title": "Basics", "lessons": [{"title": "Text sample", "contentType": "text", "duration": 0, "preview": True}, {"title": "Protected lesson", "contentType": "video", "duration": 30, "preview": False}]}]}
 
 
@@ -143,7 +143,7 @@ def run_checks(browser, media, evidence):
         owner.get_by_role("radio", name="Public", exact=True).check(); owner.get_by_label("Exam or qualification name").fill("CCC")
         owner.get_by_label("Public sample lesson").select_option(TEXT_ID)
         owner.get_by_role("button", name="Save course details").click()
-        expect(owner.get_by_role("heading", name="Public discovery: Public")).to_be_visible()
+        expect(owner.get_by_role("heading", name="Enrollment policy: Public")).to_be_visible()
         payload = owner_state["payloads"][-1]
         harness.check(payload["visibility"] == "public" and payload["previewLesson"] == TEXT_ID and payload["price"] == "120.5", "owner edits public settings without altering existing paid price")
         owner.get_by_label("Lesson text", exact=True).fill("Updated owner-authored sample")
