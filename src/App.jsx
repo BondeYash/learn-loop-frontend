@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, Navigate, Route, Routes } from "react-router-dom";
-import Brand from "./components/Brand.jsx";
-import { ThemeToggle } from "./theme/ThemeProvider.jsx";
+import { Navigate, Route, Routes } from "react-router-dom";
+import PublicLayout from "./layouts/PublicLayout.jsx";
+import PublicCatalogPage from "./pages/public/PublicCatalogPage.jsx";
+import PublicCoursePage from "./pages/public/PublicCoursePage.jsx";
 import LoginPage from "./pages/auth/LoginPage.jsx";
 import RegisterPage from "./pages/auth/RegisterPage.jsx";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage.jsx";
@@ -19,9 +20,6 @@ import { fetchCurrentUser, sessionExpired } from "./slices/authSlice.js";
 import ChangePasswordPage from "./pages/auth/ChangePasswordPage.jsx";
 import AdminPage from "./pages/admin/AdminPage.jsx";
 import PaymentStatusPage from "./pages/PaymentStatusPage.jsx";
-function Home() {
-  return <main className="auth-shell relative flex min-h-screen flex-col items-center justify-center gap-5 px-6 text-center"><div className="absolute right-5 top-5"><ThemeToggle /></div><Brand large /><h1 className="max-w-2xl font-display text-4xl font-semibold tracking-[-0.04em] sm:text-6xl">A little progress.<br /><span className="text-slate-500 dark:text-slate-400">A world of possibility.</span></h1><p className="max-w-lg text-slate-600 dark:text-slate-300">A focused place to teach and learn. Students can browse every published course, and watch its videos after that course’s instructor gives them access.</p><div className="flex gap-3"><Link className="btn-primary" to="/dashboard">Go to dashboard</Link><Link className="btn-secondary" to="/register">Create an account</Link></div></main>;
-}
 export default function App() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
@@ -43,7 +41,7 @@ export default function App() {
     return () => clearInterval(timer);
   }, [dispatch, userId]);
   return <Routes key={user?.id || "signed-out"}>
-    <Route path="/" element={<Home />} />
+    <Route element={<PublicLayout />}><Route path="/" element={<PublicCatalogPage home />} /><Route path="/catalog" element={<PublicCatalogPage />} /><Route path="/catalog/:slug" element={<PublicCoursePage />} /></Route>
     <Route element={<ProtectedRoute publicOnly />}><Route path="/login" element={<LoginPage />} /><Route path="/register" element={<RegisterPage />} /><Route path="/forgot-password" element={<ForgotPasswordPage />} /></Route>
     <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
     <Route element={<ProtectedRoute allowPasswordChange />}><Route path="/change-password" element={<ChangePasswordPage />} /></Route>

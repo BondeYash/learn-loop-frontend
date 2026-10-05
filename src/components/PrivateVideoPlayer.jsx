@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import axiosInstance, { errorMessage } from "../services/axiosInstance.js";
-export default function PrivateVideoPlayer({ lessonId, title, studentId }) {
+export default function PrivateVideoPlayer({ lessonId, title, studentId, ticketPath, ticketField }) {
   const player = useRef(null);
   const container = useRef(null);
   // A shortened account code avoids displaying a learner's name or email.
@@ -21,12 +21,12 @@ export default function PrivateVideoPlayer({ lessonId, title, studentId }) {
     const controller = new AbortController(); pending.current = controller;
     setBuffering(true); setError("");
     try {
-      const response = await axiosInstance.get(`/lessons/${lessonId}/playback`, { signal: controller.signal });
-      if (!controller.signal.aborted) setTicket(response.data.data);
+      const response = await axiosInstance.get(ticketPath || `/lessons/${lessonId}/playback`, { signal: controller.signal });
+      if (!controller.signal.aborted) setTicket(ticketField ? response.data.data[ticketField] : response.data.data);
     } catch (e) {
       if (!controller.signal.aborted) { player.current?.pause(); setTicket(null); setBuffering(false); setError(errorMessage(e)); }
     } finally { if (pending.current === controller) pending.current = null; }
-  }, [lessonId]);
+  }, [lessonId, ticketPath, ticketField]);
   useEffect(() => {
     renew(false);
     return () => { pending.current?.abort(); pending.current = null; };
@@ -70,7 +70,7 @@ export default function PrivateVideoPlayer({ lessonId, title, studentId }) {
       {watermark && fullscreenAvailable && <div className="flex shrink-0 justify-end px-3 py-2"><button type="button" className="rounded-lg px-3 py-2 text-xs font-medium text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white" aria-label={fullscreen ? "Exit video fullscreen" : "Enter video fullscreen"} aria-pressed={fullscreen} onClick={toggleFullscreen}>{fullscreen ? "Exit full screen" : "Full screen"}</button></div>}
     </div>}
     {fullscreenError && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300" role="status">{fullscreenError}</p>}
-    {!ticket && !error && <p className="card" role="status">Loading private video…</p>}
+    {!ticket && !error && <p className="card" role="status">{ticketPath ? "Loading sample video…" : "Loading private video…"}</p>}
     {error && <div className="card mt-3" role="alert"><p className="text-sm text-red-700 dark:text-red-300">{error}</p><button className="btn-secondary mt-3" onClick={() => { automaticRetries.current = 0; renew(); }}>Retry playback</button></div>}
   </div>;
 }

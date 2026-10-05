@@ -1,6 +1,6 @@
 # LessonLoop frontend
 
-The React app for LessonLoop: instructors manage courses, MP4 videos and assignments; students watch assigned lessons and track completion. Responsive light/dark screens use system typography and a restrained teal accent.
+The React app for LessonLoop, a government-exam learning platform. Visitors can explore explicitly public courses and selected samples; instructors manage courses, MP4/text lessons, PDF notes and assignments; students open their available materials and track completion. Responsive light/dark screens use system typography and a restrained teal accent. See [public discovery, owner controls and rollout](docs/public-discovery.md).
 
 Admin-only instructor provisioning, access controls, user/course/video oversight and recoverable course archive/restore are now included. Read [admin management and rollout](docs/admin-management.md). Existing instructors/data are preserved; the operator runs the protected first-admin setup.
 
