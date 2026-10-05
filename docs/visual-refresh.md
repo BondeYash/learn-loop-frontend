@@ -27,6 +27,8 @@ Isolated Python/Playwright checks exercise the actual React components in Chrome
 - `tests/payments_browser.py`: test/live UI modes, explicit free/paid owner controls, stable retries, payment return/refund access behavior and late checkout abortion.
 - `tests/design_flow_browser.py` and `tests/student_player_browser.py`: dialog focus/cancel/pending/error behavior and private player/access regressions.
 
-Screenshots produced by these checks contain synthetic fixtures, not additional production inventory. Browser fixtures do not verify production authentication, payment-provider account eligibility, actual charges or deployed webhooks. Backend code is unchanged by this increment. Publication to GitHub and verification of a hosted deployment are separate steps; a hosted HTTP 403 remains a deployment-access limitation.
+Screenshots produced by these checks contain synthetic fixtures, not additional production inventory. Browser fixtures do not verify production authentication, payment-provider account eligibility, actual charges or deployed webhooks. Backend code is unchanged by this increment. Publication to GitHub and verification of a hosted deployment are separate steps.
 
 On 2026-10-05, lint, frontend unit tests, the production build, the Cloudflare dry run and all six browser suites listed above passed. Light/dark screenshots were also inspected visually. No service was deployed and no provider settings were changed during these checks.
+
+After GitHub publication, a normal curl read returned HTTP 200 and served the refreshed copy in JavaScript. Hosted CSS, the Latin fonts, font stylesheet and favicon matched the verified local bytes. The hosted JavaScript bundle had a different filename and bytes, so exact deployed-commit or JavaScript equivalence was not established. Another read client returned HTTP 403. These static reads did not exercise live login, checkout or provider eligibility.

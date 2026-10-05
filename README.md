@@ -34,8 +34,10 @@ The development API must be configured for private R2 and Atlas/local MongoDB. A
 
 ## Current verification scope
 
-The earlier video verification used a retained synthetic MP4: after the exact local bucket CORS rule was saved, it uploaded through the instructor browser, passed real R2 confirmation, was published and assigned, and played to the end in the student browser. Native seeking, completion persistence after reload and automatic signed URL renewal were verified. No production/load test or all-browser/all-codec guarantee is claimed. Captions, adaptive bitrate, quizzes and certificates remain outside this implemented scope. Public enrollment and payment records are documented separately below; visual verification uses isolated local fixtures and does not establish deployed payment readiness.
+The earlier video verification used a retained synthetic MP4: after the exact local bucket CORS rule was saved, it uploaded through the instructor browser, passed real R2 confirmation, was published and assigned, and played to the end in the student browser. Native seeking, completion persistence after reload and automatic signed URL renewal were verified. No production/load test or all-browser/all-codec guarantee is claimed. Captions, adaptive bitrate and certificates remain outside this implemented scope. Public enrollment, payment records and assessments are documented separately below; visual and assessment verification use isolated local fixtures and do not establish deployed payment readiness.
 
 Live evidence and limits: [local verification record](docs/verification.md).
 
 Current public enrollment and payment-record behavior: [Stage 2 documentation](docs/public-enrollment.md).
+
+Instructor/admin-authored chapter quizzes and timed mock tests, learner attempts/results and tagged practice history: [assessment behavior and verification](docs/assessments.md). Assessment content starts empty until an instructor authors it.

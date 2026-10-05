@@ -3,7 +3,7 @@ export function safeReturnTo(value) {
   if (typeof value !== "string" || value.length > 2048 || !value.startsWith("/") || value.startsWith("//") || value.includes("\\") || [...value].some((char) => char.charCodeAt(0) <= 32)) return "/dashboard";
   try {
     const url = new URL(value, "https://lessonloop.invalid");
-    if (url.origin !== "https://lessonloop.invalid" || !/^\/(?:catalog(?:\/[^/]+)?|courses(?:\/[^/]+)?|payments(?:\/[^/]+)?|dashboard|student|instructor(?:\/courses(?:\/new|\/[^/]+\/(?:edit|curriculum))?)?|admin(?:\/courses\/upload)?)\/?$/.test(url.pathname)) return "/dashboard";
+    if (url.origin !== "https://lessonloop.invalid" || !/^\/(?:catalog(?:\/[^/]+)?|courses(?:\/[^/]+(?:\/assessments)?)?|assessment-attempts\/[^/]+|payments(?:\/[^/]+)?|dashboard|student|instructor(?:\/courses(?:\/new|\/[^/]+\/(?:edit|curriculum|assessments))?)?|admin(?:\/courses\/upload)?)\/?$/.test(url.pathname)) return "/dashboard";
     return url.pathname + url.search + url.hash;
   } catch { return "/dashboard"; }
 }
