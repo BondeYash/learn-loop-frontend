@@ -47,6 +47,7 @@ def run_checks(browser, media, evidence):
                 return
             if not url.path.startswith("/api/"): route.continue_(); return
             data = None
+            if harness.fulfill_optional_acquisition(route, url): return
             if url.path == "/api/auth/me":
                 if not role: route.fulfill(status=401, json={"message": "Sign in required"}); return
                 data = {"user": {"id": harness.STUDENT_ID, "name": "Private account fixture", "role": role, "status": "active", "mustChangePassword": False}}

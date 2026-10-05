@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import axiosInstance, { errorMessage } from "../services/axiosInstance.js";
 import { createCheckout, formatInr } from "../services/payments.js";
 import { Link } from "react-router-dom";
+import { getAttribution } from "../services/acquisition.js";
 
 export default function CoursePayment({ courseId, onAccess, publicEnrollment = false, compact = false }) {
   const [data, setData] = useState(null), [error, setError] = useState(""), [busy, setBusy] = useState(false);
@@ -18,7 +19,8 @@ export default function CoursePayment({ courseId, onAccess, publicEnrollment = f
     const request = new AbortController(); action.current = request;
     try {
       if (enroll) {
-        await axiosInstance.post(`/courses/${courseId}/enroll`, { quotedAmountMinor: data.quote.amountMinor }, { signal: request.signal });
+        const attribution = getAttribution(courseId);
+        await axiosInstance.post(`/courses/${courseId}/enroll`, { quotedAmountMinor: data.quote.amountMinor, ...(attribution ? { attribution } : {}) }, { signal: request.signal });
         if (!request.signal.aborted) onAccess();
       } else {
         const checkout = await createCheckout(courseId, data.quote.amountMinor, attempt.current, data.quote.testMode, request.signal);

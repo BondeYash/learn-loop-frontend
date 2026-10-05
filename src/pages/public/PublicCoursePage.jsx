@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { LockKeyhole, Play } from "lucide-react";
@@ -8,6 +8,7 @@ import CourseArtwork from "../../components/CourseArtwork.jsx";
 import PrivateVideoPlayer from "../../components/PrivateVideoPlayer.jsx";
 import axiosInstance, { errorMessage } from "../../services/axiosInstance.js";
 import { coursePrice } from "./PublicCatalogPage.jsx";
+const CourseAcquisition = lazy(() => import("../../components/CourseAcquisition.jsx"));
 
 function Sample({ course, lesson }) {
   const [open, setOpen] = useState(false), [text, setText] = useState(null), [error, setError] = useState(""), [retry, setRetry] = useState(0);
@@ -54,6 +55,7 @@ export default function PublicCoursePage() {
     <aside className="card public-enrollment-panel min-w-0 !p-0 overflow-hidden lg:sticky lg:top-6"><CourseArtwork course={course} className="aspect-video w-full" /><div className="p-5 sm:p-6"><p className="text-sm text-slate-500 dark:text-slate-400">Course price</p><p className="mt-2 text-3xl font-semibold">{coursePrice(course.amountMinor)}</p>{sample && <a href="#sample" className="btn-primary mt-5 w-full">Try the sample</a>}<EnrollmentOptions course={course} user={user} slug={slug} onAccess={() => navigate(`/courses/${course.id}`)} />
       <div className="mt-6 border-t border-slate-200 pt-5 dark:border-slate-700"><h2 className="font-semibold">Questions about the course?</h2>{course.support?.email || course.support?.url ? <div className="mt-3 space-y-2 text-sm">{course.support.email && <a className="block break-all text-primary-700 underline dark:text-primary-300" href={`mailto:${encodeURIComponent(course.support.email)}`}>{course.support.email}</a>}{course.support.url && <a className="block text-primary-700 underline dark:text-primary-300" href={course.support.url} target="_blank" rel="noopener noreferrer">Contact the course team</a>}</div> : <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">The instructor has not provided a public support contact yet.</p>}</div>
       {policies.length > 0 && <nav aria-label="Course policies" className="mt-5 flex flex-wrap gap-3 text-xs">{policies.map(([name, url]) => <a key={name} href={url} target="_blank" rel="noopener noreferrer" className="text-primary-700 underline dark:text-primary-300">{({ terms: "Terms", privacy: "Privacy policy", refund: "Refund policy" })[name]}</a>)}</nav>}
+      <Suspense fallback={null}><CourseAcquisition key={course.id} courseId={course.id} /></Suspense>
     </div></aside>
   </div></>;
 }

@@ -25,6 +25,7 @@ import AssessmentAuthorPage from "./pages/assessments/AssessmentAuthorPage.jsx";
 import StudentAssessmentsPage from "./pages/assessments/StudentAssessmentsPage.jsx";
 import AssessmentAttemptPage from "./pages/assessments/AssessmentAttemptPage.jsx";
 const LearningSupportPage = lazy(() => import("./pages/courses/LearningSupportPage.jsx"));
+const AcquisitionPage = lazy(() => import("./pages/courses/AcquisitionPage.jsx"));
 export default function App() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
@@ -60,6 +61,7 @@ export default function App() {
         <Route path="/instructor/courses/new" element={<CreateCoursePage />} /><Route path="/instructor/courses/:id/curriculum" element={<CurriculumPage />} />
         <Route path="/instructor/courses/:id/edit" element={<CreateCoursePage />} />
         <Route path="/instructor/courses/:id/assessments" element={<AssessmentAuthorPage />} />
+        <Route path="/instructor/courses/:id/acquisition" element={<Suspense fallback={<p role="status">Loading course acquisition…</p>}><AcquisitionPage /></Suspense>} />
         <Route path="/instructor/courses/:id/support" element={<Suspense fallback={<p role="status">Loading learning support…</p>}><LearningSupportPage /></Suspense>} />
       </Route>
       <Route element={<ProtectedRoute roles={["admin"]} />}><Route path="/admin" element={<AdminPage />} /><Route path="/admin/courses/upload" element={<CreateCoursePage />} /></Route>

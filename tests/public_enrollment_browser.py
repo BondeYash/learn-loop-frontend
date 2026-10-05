@@ -24,6 +24,7 @@ def run_checks(browser, media, evidence):
             if u.hostname=='checkout.stripe.com':r.fulfill(content_type='text/html',body='<h1>Synthetic Stripe checkout</h1>');return
             if u.netloc!='127.0.0.1:5186':unexpected.append(req.url);r.abort();return
             if not u.path.startswith('/api/'):r.continue_();return
+            if harness.fulfill_optional_acquisition(r, u): return
             if u.path=='/api/auth/me':
                 if not state['role']:r.fulfill(status=401,json={'message':'Sign in required'});return
                 answer={'user':user()}

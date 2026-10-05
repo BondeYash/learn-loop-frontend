@@ -39,6 +39,13 @@ def fulfill_learning_place(route, url):
     return False
 
 
+def fulfill_optional_acquisition(route, url):
+    if url.path.startswith("/api/public/courses/") and url.path.endswith("/acquisition") and route.request.method == "GET":
+        route.fulfill(json={"data":{"measurementEnabled":False,"interestEnabled":False,"policyUrl":"","retentionDays":90}})
+        return True
+    return False
+
+
 def run_checks(browser, media, evidence):
     contexts = []
     unexpected = []

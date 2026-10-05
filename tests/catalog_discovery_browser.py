@@ -26,6 +26,7 @@ def run_checks(browser, _media, evidence):
             if f"{u.scheme}://{u.netloc}" != harness.ORIGIN: unexpected.append(r.request.url); r.abort(); return
             if not u.path.startswith("/api/"): r.continue_(); return
             calls.append((r.request.method, u.path))
+            if harness.fulfill_optional_acquisition(r, u): return
             if u.path == "/api/auth/me":
                 if not student: r.fulfill(status=401, json={"message": "Sign in required"}); return
                 data = {"user": {"id": harness.STUDENT_ID, "name": "Synthetic learner", "role": "student", "status": "active", "mustChangePassword": False}}

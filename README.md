@@ -41,3 +41,5 @@ Live evidence and limits: [local verification record](docs/verification.md).
 Current public enrollment and payment-record behavior: [Stage 2 documentation](docs/public-enrollment.md).
 
 Instructor/admin-authored chapter quizzes and timed mock tests, learner attempts/results and tagged practice history: [assessment behavior and verification](docs/assessments.md). Assessment content starts empty until an instructor authors it.
+
+Current staged completion, verification scope and remaining launch gaps: [release evidence](docs/staged-release.md). Optional source measurement and interest collection remain off until owner configuration: [acquisition](docs/acquisition.md).
