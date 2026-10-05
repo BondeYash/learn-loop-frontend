@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint src worker --ext js,jsx",
-    "test": "node tests/auth.test.js && node tests/videoValidation.test.js && node --test tests/proxy.test.js",
+    "test": "node tests/auth.test.js && node --test tests/authReturn.test.js && node tests/videoValidation.test.js && node --test tests/proxy.test.js",
     "test:proxy": "node --test tests/proxy.test.js",
     "dev:cloudflare": "wrangler dev --local --ip 127.0.0.1 --port 8787",
     "check:cloudflare": "wrangler deploy --dry-run --outdir .wrangler/dry-run",

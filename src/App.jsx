@@ -20,6 +20,7 @@ import { fetchCurrentUser, sessionExpired } from "./slices/authSlice.js";
 import ChangePasswordPage from "./pages/auth/ChangePasswordPage.jsx";
 import AdminPage from "./pages/admin/AdminPage.jsx";
 import PaymentStatusPage from "./pages/PaymentStatusPage.jsx";
+import PaymentHistoryPage from "./pages/PaymentHistoryPage.jsx";
 export default function App() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
@@ -48,7 +49,7 @@ export default function App() {
     <Route element={<ProtectedRoute />}><Route element={<DashboardLayout />}>
       <Route path="/dashboard" element={<DashboardIndex />} />
       <Route path="/courses" element={<CoursesPage />} /><Route path="/courses/:id" element={<CourseDetailsPage />} />
-      <Route element={<ProtectedRoute roles={["student"]} />}><Route path="/student" element={<StudentDashboardPage />} /><Route path="/payments/:id" element={<PaymentStatusPage />} /></Route>
+      <Route element={<ProtectedRoute roles={["student"]} />}><Route path="/student" element={<StudentDashboardPage />} /><Route path="/payments" element={<PaymentHistoryPage />} /><Route path="/payments/:id" element={<PaymentStatusPage />} /></Route>
       <Route element={<ProtectedRoute roles={["instructor", "admin"]} />}>
         <Route path="/instructor" element={<MyCoursesPage />} /><Route path="/instructor/courses" element={<MyCoursesPage />} />
         <Route path="/instructor/courses/new" element={<CreateCoursePage />} /><Route path="/instructor/courses/:id/curriculum" element={<CurriculumPage />} />

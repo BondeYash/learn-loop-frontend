@@ -8,11 +8,11 @@ The homepage presents LessonLoop as a government-exam learning platform. CCC is 
 
 Text samples render as escaped plain text with preserved line breaks. Video samples use the public selected-preview endpoint and the same expiring-ticket player as private lessons, without a learner identity overlay. When fresh sample access is withdrawn the player removes its video and offers retry. Previously issued URLs remain usable until expiry; already delivered bytes cannot be recalled.
 
-Stage 1 course access is arranged by an instructor. Public pages say this explicitly and let existing learners sign in/open their course; the selected course destination is retained for sign-in. Public self-service signup/payment/automatic enrollment is Stage 2. This release does not promise a working public checkout or fix the existing live Stripe 400.
+Public self-service signup/enrollment and canonical paid fulfillment are implemented in [Stage 2](public-enrollment.md). Private courses continue to require instructor assignment. Local mocked validation does not establish live checkout readiness or resolve the previously reported provider failure.
 
 ## Owner flow
 
-Course details include Private/Public discovery controls (Private by default), actual exam name, summary/audience, explicit public teaching identity, support/policy links and a same-course sample selector. Public discovery only opens when the course is published and unarchived. Saving Public on an already published course shares the page/sample immediately. Full learning content still uses the current assignment/payment rules.
+Course details include Private/Public discovery controls (Private by default), actual exam name, summary/audience, explicit public teaching identity, support/policy links and a same-course sample selector. Public discovery only opens when the course is published and unarchived. Saving Public on an already published course shares the page/sample immediately. Full learning content requires an instructor assignment or explicit public enrollment, plus any required verified payment.
 
 The curriculum supports creating and editing plain-text lessons as well as existing video/PDF management. To add a text sample, create a text lesson, write/save its content, then select it in course details. For a video sample, complete its MP4 upload first. Returning the selection to No public sample stops fresh preview requests. Existing account profile/contact information is not filled into public fields automatically. Existing Free/Paid controls and saved prices are preserved.
 

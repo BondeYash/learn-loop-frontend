@@ -37,3 +37,5 @@ The development API must be configured for private R2 and Atlas/local MongoDB. A
 The production build and lint pass. After the exact local bucket CORS rule was saved, the retained synthetic MP4 uploaded through the instructor browser, passed real R2 confirmation, was published and assigned, and played to the end in the student browser. Native seeking, completion persistence after reload and automatic signed URL renewal were verified. No production/load test or all-browser/all-codec guarantee is claimed. Captions, adaptive bitrate, quizzes, payments and certificates are outside scope.
 
 Live evidence and limits: [local verification record](docs/verification.md).
+
+Current public enrollment and payment-record behavior: [Stage 2 documentation](docs/public-enrollment.md).

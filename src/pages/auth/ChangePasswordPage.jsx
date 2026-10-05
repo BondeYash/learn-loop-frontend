@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { KeyRound, LogOut } from "lucide-react";
+import { authReturn } from "../../services/authReturn.js";
 import AuthLayout from "./AuthLayout.jsx";
 import axiosInstance, { errorMessage } from "../../services/axiosInstance.js";
 import { logout, setSession } from "../../slices/authSlice.js";
 
 export default function ChangePasswordPage() {
   const user = useSelector((state) => state.auth.user);
-  const dispatch = useDispatch(); const navigate = useNavigate();
+  const dispatch = useDispatch(); const navigate = useNavigate(); const location = useLocation();
   const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   const required = user?.mustChangePassword;
   const submit = async (event) => {
@@ -17,7 +18,7 @@ export default function ChangePasswordPage() {
     setBusy(true); setError("");
     try {
       const { data } = await axiosInstance.post("/auth/change-password", { currentPassword: fields.get("currentPassword"), password: fields.get("password") });
-      form.reset(); dispatch(setSession(data.data)); navigate("/dashboard", { replace: true });
+      form.reset(); dispatch(setSession(data.data)); navigate(authReturn(location), { replace: true });
     } catch (e) { setError(errorMessage(e)); } finally { setBusy(false); }
   };
   const signOut = async () => {

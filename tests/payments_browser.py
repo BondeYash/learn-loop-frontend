@@ -10,7 +10,7 @@ def run_checks(browser, media, evidence):
     contexts, unexpected, errors = [], [], []
     def fixture(role="student",theme="light",width=1280,test_mode=True,free_course=False,assigned=True,stale_paywall=False):
         ctx=browser.new_context(viewport={"width":width,"height":900},service_workers="block");contexts.append(ctx)
-        ctx.add_init_script(f"localStorage.setItem('lessonloop_theme','{theme}')")
+        ctx.add_init_script(f"if (!localStorage.getItem('lessonloop_theme')) localStorage.setItem('lessonloop_theme','{theme}')")
         page=ctx.new_page();page.on("pageerror",lambda e:errors.append(str(e)))
         course={"_id":"course-fixture","title":"A paid learning course","description":"Synthetic assigned course","price":123.45,"instructor":{"name":"Fixture teacher"},"category":{"_id":"category-fixture","name":"General"},"isPublished":True}
         state={"paid":False,"status":"pending","ready":True,"failure":True,"unsafe":False,"calls":[],"keys":[],"price":12345,"hold":False,"held":[],"price_change":False,"has_order":False,"wrong_mode":False,"readiness_mode":test_mode}
@@ -52,7 +52,7 @@ def run_checks(browser, media, evidence):
                 answer={"order":{**order,"testMode":not test_mode if state["wrong_mode"] else test_mode},"url":"https://evil.invalid/checkout" if state["unsafe"] else f"https://checkout.stripe.com/c/pay/cs_{'test' if test_mode else 'live'}_fixture"}
                 if state["hold"]:state["held"].append((r,answer));return
             elif u.path.startswith("/api/payments/orders/order-fixture"):
-                order["status"]=state["status"];answer={"order":order}
+                order["status"]=state["status"];order["canAccess"]=assigned and (state["paid"] or course["price"]==0);answer={"order":order}
             else:unexpected.append(request.url);r.fulfill(status=500,json={"message":"Unknown fixture"});return
             r.fulfill(json={"data":answer})
         ctx.route("**/*",route)
@@ -144,7 +144,7 @@ def run_checks(browser, media, evidence):
         state["stale_paywall"]=False;learner.get_by_role("button",name="Open course",exact=True).click();expect(learner.get_by_text("Private lesson content after verified payment",exact=True)).to_be_visible()
         assert not any(path=="/api/payments/checkout" for _,path in state["calls"])
         learner,state,_=fixture(free_course=True,assigned=False);learner.goto(harness.ORIGIN+"/courses/course-fixture")
-        expect(learner.get_by_text("Videos unlock after this instructor gives you access")).to_be_visible()
+        expect(learner.get_by_text("has not given your account access", exact=False)).to_be_visible()
         expect(learner.locator("video")).to_have_count(0)
         expect(learner.get_by_text("Private lesson content after verified payment",exact=True)).not_to_be_visible()
         assert not any(path.startswith("/api/payments/") or path.endswith("/playback") or path.endswith("/notes") for _,path in state["calls"])
@@ -156,6 +156,13 @@ def run_checks(browser, media, evidence):
         expect(page.get_by_role("button",name="Continue to payment")).to_be_disabled();expect(page.get_by_text("Checkout is being configured. Please try again later.")).to_be_visible()
         assert not page.get_by_text("no real money",exact=False).count()
         harness.check(True,"missing configuration and inconsistent server modes disable Checkout")
+        page,state,_=fixture();state["failure"]=False;state["hold"]=True;page.goto(harness.ORIGIN+"/courses/course-fixture")
+        page.get_by_role("button",name="Continue to test checkout").click();expect(page.get_by_role("button",name="Opening Stripe…")).to_be_disabled()
+        assert len(state["held"])==1
+        page.get_by_role("link",name="Dashboard",exact=True).click();expect(page.locator(".course-card")).to_have_count(2)
+        route,answer=state["held"].pop();route.fulfill(json={"data":answer});page.wait_for_timeout(200)
+        assert page.url.endswith("/student"), "A checkout response after unmount must not redirect the learner"
+        harness.check(True,"leaving a pending checkout aborts the request and prevents a late provider redirect")
         harness.check(not errors,f"no browser runtime errors: {errors}");harness.check(not unexpected,f"all external calls intercepted/blocked: {unexpected}")
     finally:
         for ctx in contexts:ctx.unroute_all(behavior="wait");ctx.close()
