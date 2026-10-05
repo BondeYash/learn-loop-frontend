@@ -64,6 +64,7 @@ def run_checks(browser, _media, evidence):
                 data = {"courses": [state["course"]]}
             elif url.path in ["/api/courses/mine/course-fixture", "/api/courses/course-fixture"]:
                 data = {"course": state["course"], "modules": state["modules"]}
+            elif harness.fulfill_learning_place(route, url): return
             elif url.path == "/api/courses/course-fixture/progress":
                 data = {"progress": {"completedLessons": [], "percentage": 0}}
             elif url.path == "/api/courses/course-fixture/assignments":

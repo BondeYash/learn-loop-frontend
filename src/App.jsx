@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Route, Routes } from "react-router-dom";
 import PublicLayout from "./layouts/PublicLayout.jsx";
@@ -24,6 +24,7 @@ import PaymentHistoryPage from "./pages/PaymentHistoryPage.jsx";
 import AssessmentAuthorPage from "./pages/assessments/AssessmentAuthorPage.jsx";
 import StudentAssessmentsPage from "./pages/assessments/StudentAssessmentsPage.jsx";
 import AssessmentAttemptPage from "./pages/assessments/AssessmentAttemptPage.jsx";
+const LearningSupportPage = lazy(() => import("./pages/courses/LearningSupportPage.jsx"));
 export default function App() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
@@ -52,12 +53,14 @@ export default function App() {
     <Route element={<ProtectedRoute />}><Route element={<DashboardLayout />}>
       <Route path="/dashboard" element={<DashboardIndex />} />
       <Route path="/courses" element={<CoursesPage />} /><Route path="/courses/:id" element={<CourseDetailsPage />} />
+      <Route element={<ProtectedRoute roles={["student"]} />}><Route path="/courses/:id/support" element={<Suspense fallback={<p role="status">Loading learning support…</p>}><LearningSupportPage /></Suspense>} /></Route>
       <Route element={<ProtectedRoute roles={["student"]} />}><Route path="/student" element={<StudentDashboardPage />} /><Route path="/payments" element={<PaymentHistoryPage />} /><Route path="/payments/:id" element={<PaymentStatusPage />} /><Route path="/courses/:id/assessments" element={<StudentAssessmentsPage />} /><Route path="/assessment-attempts/:id" element={<AssessmentAttemptPage />} /></Route>
       <Route element={<ProtectedRoute roles={["instructor", "admin"]} />}>
         <Route path="/instructor" element={<MyCoursesPage />} /><Route path="/instructor/courses" element={<MyCoursesPage />} />
         <Route path="/instructor/courses/new" element={<CreateCoursePage />} /><Route path="/instructor/courses/:id/curriculum" element={<CurriculumPage />} />
         <Route path="/instructor/courses/:id/edit" element={<CreateCoursePage />} />
         <Route path="/instructor/courses/:id/assessments" element={<AssessmentAuthorPage />} />
+        <Route path="/instructor/courses/:id/support" element={<Suspense fallback={<p role="status">Loading learning support…</p>}><LearningSupportPage /></Suspense>} />
       </Route>
       <Route element={<ProtectedRoute roles={["admin"]} />}><Route path="/admin" element={<AdminPage />} /><Route path="/admin/courses/upload" element={<CreateCoursePage />} /></Route>
     </Route></Route>

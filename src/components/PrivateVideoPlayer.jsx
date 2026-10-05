@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import axiosInstance, { errorMessage } from "../services/axiosInstance.js";
-export default function PrivateVideoPlayer({ lessonId, title, studentId, ticketPath, ticketField }) {
+export default function PrivateVideoPlayer({ lessonId, title, studentId, ticketPath, ticketField, initialPosition = 0, onPosition }) {
   const player = useRef(null);
   const container = useRef(null);
   // A shortened account code avoids displaying a learner's name or email.
@@ -9,7 +9,8 @@ export default function PrivateVideoPlayer({ lessonId, title, studentId, ticketP
   const [fullscreenAvailable, setFullscreenAvailable] = useState(() => typeof document !== "undefined" && document.fullscreenEnabled && typeof document.documentElement.requestFullscreen === "function");
   const [fullscreen, setFullscreen] = useState(false);
   const [fullscreenError, setFullscreenError] = useState("");
-  const resume = useRef({ time: 0, playing: false });
+  const resume = useRef({ time: initialPosition, playing: false });
+  const reportedAt = useRef(0);
   const pending = useRef(null);
   const automaticRetries = useRef(0);
   const [ticket, setTicket] = useState(null);
@@ -62,6 +63,7 @@ export default function PrivateVideoPlayer({ lessonId, title, studentId, ticketP
       controlsList={watermark ? `nodownload${fullscreenAvailable ? " nofullscreen" : ""}` : undefined}
       onContextMenu={watermark ? (event) => event.preventDefault() : undefined}
       onLoadStart={() => setBuffering(true)} onCanPlay={() => setBuffering(false)} onPlaying={() => setBuffering(false)} onWaiting={() => setBuffering(true)} onError={failed}
+      onTimeUpdate={(event) => { if (onPosition && performance.now() - reportedAt.current > 10000) { reportedAt.current = performance.now(); onPosition(event.currentTarget.currentTime); } }} onPause={(event) => onPosition?.(event.currentTarget.currentTime)} onSeeked={(event) => onPosition?.(event.currentTarget.currentTime)}
       onSeeking={() => { if (Date.now() > ticket.expiresAt - 15000) renew(); }}
       onLoadedMetadata={(event) => { const video = event.currentTarget; video.currentTime = Math.min(resume.current.time, Math.max(0, video.duration - 0.1)); if (resume.current.playing) video.play().catch(() => {}); }}>
       Your browser does not support HTML5 video.

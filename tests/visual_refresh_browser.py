@@ -35,6 +35,7 @@ def run_checks(browser, media, evidence):
                 if state['list_error']:r.fulfill(status=503,json={'message':'Synthetic catalog interruption'});return
                 answer={'courses':[dict(state['course'],access={'assigned':True,'enrolled':True,'videos':True,'status':'active'},payment={'status':'free','required':False,'amountMinor':0})]}
             elif u.path in ['/api/courses/'+COURSE_ID,'/api/courses/mine/'+COURSE_ID]:answer={'course':state['course'],'modules':[module],'access':{'assigned':True,'enrolled':True,'videos':True}}
+            elif harness.fulfill_learning_place(r, u): return
             elif u.path.endswith('/progress'):answer={'progress':state['progress']}
             elif u.path.endswith('/complete'):state['progress']={'completedLessons':['lesson-fixture'],'percentage':100};answer={'progress':state['progress']}
             elif u.path.endswith('/notes'):answer={'notes':[]}

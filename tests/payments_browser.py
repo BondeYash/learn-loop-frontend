@@ -39,6 +39,7 @@ def run_checks(browser, media, evidence):
                 if course["price"]>0 and not state["paid"] or state["stale_paywall"]:
                     r.fulfill(status=402,json={"message":"Payment is required","code":"PAYMENT_REQUIRED","courseId":"course-fixture"});return
                 answer={"course":course,"modules":[{"_id":"module-fixture","title":"Lessons","lessons":[{"_id":"lesson-fixture","title":"Paid lesson","contentType":"text","content":"Private lesson content after verified payment"}]}]}
+            elif harness.fulfill_learning_place(r, u): return
             elif u.path.endswith("/progress"):answer={"progress":{"completedLessons":[],"percentage":0}}
             elif u.path.endswith("/notes"):answer={"notes":[]}
             elif u.path.endswith("/assignments"):answer={"assignments":[]}

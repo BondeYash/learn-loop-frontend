@@ -29,6 +29,16 @@ def check(condition, label):
     print(f"PASS {label}", flush=True)
 
 
+def fulfill_learning_place(route, url):
+    # Legacy suites acknowledge the new visit API. Persistence and access are
+    # exercised separately in learning_support_browser.py and backend HTTP tests.
+    if url.path.startswith("/api/lessons/") and url.path.endswith("/visit") and route.request.method == "POST":
+        body = route.request.post_data_json
+        route.fulfill(json={"data":{"progress":{"completedLessons":[],"percentage":0,"resumeRevision":body["revision"]+1,"resume":{"lesson":url.path.split("/")[-2],"position":body["position"]}}}})
+        return True
+    return False
+
+
 def run_checks(browser, media, evidence):
     contexts = []
     unexpected = []
@@ -70,6 +80,7 @@ def run_checks(browser, media, evidence):
                 data = {"user": {"id": STUDENT_ID, "name": "Demo learner", "email": "fixture@example.invalid", "role": role, "status": "active", "mustChangePassword": False}}
             elif url.path == "/api/courses/course-fixture":
                 data = COURSE
+            elif fulfill_learning_place(route, url): return
             elif url.path == "/api/courses/course-fixture/progress":
                 data = {"progress": {"completedLessons": [], "percentage": 0}}
             elif url.path == "/api/courses/course-fixture/notes":

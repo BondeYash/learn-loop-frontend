@@ -53,6 +53,7 @@ def run_checks(browser, media, evidence):
             elif u.path=='/api/courses/'+COURSE_ID:
                 c=dict(course,visibility='private' if state['private'] else 'public')
                 answer={'course':c,'access':{'assigned':False,'enrolled':state['enrolled'],'videos':state['enrolled'] and not state['private']},'modules':[{'_id':'module-fixture','title':'Lessons','lessons':[{'_id':'lesson-fixture','title':'Learning lesson','contentType':'text',**({'content':'Learning content after enrollment'} if state['enrolled'] and not state['private'] else {'locked':True})}]}]}
+            elif harness.fulfill_learning_place(r, u): return
             elif u.path.endswith('/progress'):answer={'progress':{'completedLessons':[],'percentage':0}}
             elif u.path.endswith('/notes'):answer={'notes':[]}
             elif u.path=='/api/courses':answer={'courses':[course]}

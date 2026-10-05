@@ -45,6 +45,7 @@ def run_checks(browser, media, evidence):
                 assert "multipart/form-data; boundary=" in request.headers["content-type"]
                 if state["upload_fail"]: route.fulfill(status=503,json={"message":"Fixture storage unavailable."});return
                 state["version"]+=1;course["thumbnail"]={"url":f"/api/courses/course-fixture/thumbnail?v={state['version']}"};data={"course":course}
+            elif harness.fulfill_learning_place(route, url): return
             elif url.path=="/api/courses/course-fixture/progress": data={"progress":{"completedLessons":[],"percentage":0}}
             elif url.path.endswith("/notes"):
                 data={"notes":state["notes"]}
