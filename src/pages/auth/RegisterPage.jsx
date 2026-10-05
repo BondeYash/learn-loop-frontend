@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "../../services/notifications.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import { authReturn, authLink } from "../../services/authReturn.js";
 import AuthLayout from "./AuthLayout.jsx";

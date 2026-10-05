@@ -1,6 +1,6 @@
 import Brand from "../components/Brand.jsx";
 import { ThemeToggle } from "../theme/ThemeProvider.jsx";
-import { toast } from "react-toastify";
+import { toast } from "../services/notifications.jsx";
 import { LogOut, LayoutDashboard, BookOpen } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, Navigate, NavLink, Outlet, useNavigate } from "react-router-dom";

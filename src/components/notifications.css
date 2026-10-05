@@ -1,0 +1,44 @@
+.lessonloop-toasts.Toastify__toast-container {
+  width: min(390px, calc(100% - 32px)); padding: 0; margin: 0;
+  right: max(16px, env(safe-area-inset-right)); left: auto;
+  bottom: max(16px, env(safe-area-inset-bottom)); transform: none;
+  font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', sans-serif;
+}
+.lessonloop-toasts .Toastify__toast {
+  --notification-accent: #5D37C8; --notification-tint: #F3EDF9;
+  margin: 12px 0 0; padding: 14px 10px 18px 14px; min-height: 88px;
+  border: 1px solid var(--control); border-inline-start: 4px solid var(--notification-accent);
+  border-radius: 18px; background-color: var(--panel); color: var(--ink);
+  box-shadow: 0 10px 30px -12px #19172455; align-items: flex-start;
+}
+.lessonloop-toasts .Toastify__toast--success { --notification-accent: #276449; --notification-tint: #E9F5E7; }
+.lessonloop-toasts .Toastify__toast--error { --notification-accent: #AF2538; --notification-tint: #FFF0F1; }
+.lessonloop-toasts .Toastify__toast--warning { --notification-accent: #805000; --notification-tint: #FFF3D1; }
+.dark .lessonloop-toasts .Toastify__toast { --notification-accent: #BEA0FF; --notification-tint: #302A43; }
+.dark .lessonloop-toasts .Toastify__toast--success { --notification-accent: #B4DFB0; --notification-tint: #253C31; }
+.dark .lessonloop-toasts .Toastify__toast--error { --notification-accent: #FFB8C1; --notification-tint: #4C2936; }
+.dark .lessonloop-toasts .Toastify__toast--warning { --notification-accent: #FFDA8A; --notification-tint: #443620; }
+.lessonloop-toasts .Toastify__toast-body { margin: 0; padding: 0; min-width: 0; align-items: flex-start; }
+.lessonloop-toasts .Toastify__toast-body > div:last-child { min-width: 0; }
+.lessonloop-toasts .Toastify__toast-icon { width: 36px; margin-inline-end: 12px; flex-shrink: 0; }
+.notification-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; color: var(--notification-accent); background-color: var(--notification-tint); }
+.notification-copy strong { display: block; margin: 2px 0 4px; font-size: .76rem; line-height: 1.5; font-weight: 700; color: var(--notification-accent); }
+.notification-copy p { max-height: min(24dvh, 220px); overflow-y: auto; overflow-wrap: anywhere; font-size: .86rem; line-height: 1.65; }
+.notification-close { display: grid; place-items: center; min-width: 44px; width: 44px; height: 44px; flex-shrink: 0; margin: -5px -3px 0 4px; border-radius: 11px; color: var(--muted); }
+.notification-close:hover { background-color: var(--soft); color: var(--ink); }
+.notification-close:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+.lessonloop-toasts .Toastify__progress-bar { height: 3px; background: var(--notification-accent); }
+.lessonloop-toasts .Toastify__progress-bar--bg { opacity: .12; }
+.lessonloop-toasts .Toastify__toast:focus-within .Toastify__progress-bar--animated { animation-play-state: paused !important; }
+@media(max-width: 480px) {
+  .lessonloop-toasts.Toastify__toast-container { width: calc(100% - 24px); right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); }
+}
+/* Toastify's animation also clocks dismissal: keep its duration when motion is reduced. */
+@media(prefers-reduced-motion: reduce) {
+  .lessonloop-toasts .Toastify__progress-bar--animated { animation-duration: var(--notification-duration, 4500ms) !important; opacity: 0; }
+}
+@media(forced-colors: active) {
+  .lessonloop-toasts .Toastify__toast { border-color: CanvasText; box-shadow: none; }
+  .notification-icon, .notification-copy strong { color: CanvasText; }
+  .notification-close:focus-visible { outline-color: Highlight; }
+}

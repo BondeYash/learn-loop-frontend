@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "../../services/notifications.jsx";
 import { useDispatch } from "react-redux";
 import AuthLayout from "./AuthLayout.jsx";
 import axiosInstance from "../../services/axiosInstance.js";

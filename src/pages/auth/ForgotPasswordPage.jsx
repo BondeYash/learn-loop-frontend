@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "../../services/notifications.jsx";
 import AuthLayout from "./AuthLayout.jsx";
 import axiosInstance from "../../services/axiosInstance.js";
 export default function ForgotPasswordPage() { const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm(); const onSubmit = async (values) => { try { const { data } = await axiosInstance.post("/auth/forgot-password", values); toast.success(data.message); } catch (error) { toast.error(error.response?.data?.message || "Unable to request a reset link"); } }; return <AuthLayout><div className="card"><h1 className="text-2xl font-bold">Reset your password</h1><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Enter your email and we’ll send a reset link.</p><form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)}><label className="block text-sm font-medium">Email<input className="input-field mt-1" type="email" {...register("email", { required: "Email is required" })} /></label>{errors.email && <p className="text-sm text-red-600 dark:text-red-300">{errors.email.message}</p>}<button className="btn-primary w-full" disabled={isSubmitting}>{isSubmitting ? "Sending…" : "Send reset link"}</button></form><Link className="mt-5 block text-center text-sm text-primary-600 dark:text-primary-300 hover:underline" to="/login">Back to sign in</Link></div></AuthLayout>; }

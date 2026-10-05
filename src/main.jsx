@@ -2,8 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import Notifications from "./components/Notifications.jsx";
 
 import { ThemeProvider } from "./theme/ThemeProvider.jsx";
 import App from "./App.jsx";
@@ -16,7 +15,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <Provider store={store}>
       <ThemeProvider><BrowserRouter>
         <DecisionProvider><App /></DecisionProvider>
-        <ToastContainer position="top-right" autoClose={3500} newestOnTop theme="colored" />
+        <Notifications />
       </BrowserRouter></ThemeProvider>
     </Provider>
   </React.StrictMode>
