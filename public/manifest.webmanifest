@@ -1,0 +1,10 @@
+{
+  "name": "Praneet Vidyapeeth",
+  "short_name": "Praneet Vidyapeeth",
+  "description": "Government-exam learning, course outlines and selected samples. Padhai, apne pace pe.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#FFF9EF",
+  "theme_color": "#FFF9EF",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

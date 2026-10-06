@@ -2,6 +2,7 @@
 No account or provider operations leave the local fixture server.
 """
 from copy import deepcopy
+import re
 from urllib.parse import urlparse
 from playwright.sync_api import expect
 import student_player_browser as harness
@@ -50,13 +51,22 @@ def run_checks(browser, media, evidence):
             else:unexpected.append(req.url);r.fulfill(status=500,json={'message':'Unknown visual fixture'});return
             r.fulfill(json={'data':answer})
         ctx.route('**/*',route);return page,state
-    def fits(page,label):harness.check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'),label)
+    def fits(page,label):
+        expect(page).to_have_title('Praneet Vidyapeeth')
+        expect(page.locator('meta[name="description"]')).to_have_attribute('content', re.compile('Praneet Vidyapeeth'))
+        brand=page.locator('header .brand').first
+        assert ' '.join(brand.inner_text().split())=='Praneet Vidyapeeth'
+        assert brand.evaluate('e=>{const r=e.getBoundingClientRect();return r.left>=0 && r.right<=innerWidth}')
+        assert 'LessonLoop' not in page.locator('body').inner_text()
+        harness.check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'),label+' with Praneet Vidyapeeth branding')
     def screen(page,filename):page.screenshot(path=str(evidence/filename),full_page=True,animations='disabled')
     def zoom(page,label):
         page.set_viewport_size({'width':640,'height':1000});page.evaluate("document.documentElement.style.zoom='2'");fits(page,label+' at 200%');page.evaluate("document.documentElement.style.zoom=''")
     try:
         for theme in ['light','dark']:
             page,state=fixture(theme=theme);page.goto(harness.ORIGIN);expect(page.get_by_role('heading',name='Padhai, apne pace pe.')).to_be_visible();page.evaluate('document.fonts.ready')
+            expect(page.get_by_role('link',name='Praneet Vidyapeeth home',exact=True)).to_be_visible()
+            expect(page.locator('footer')).to_contain_text('Praneet Vidyapeeth')
             heading=page.locator('.study-hero h1');font=heading.evaluate('e=>getComputedStyle(e).fontFamily');harness.check('Baloo 2' in font,'display family is loaded: '+font)
             assert page.evaluate("document.fonts.check('800 40px \"Baloo 2\"','Padhai') && document.fonts.check('500 17px \"Plus Jakarta Sans\"','Course')")
             assert page.locator('.hero-cta').evaluate("e=>getComputedStyle(e).backgroundColor==='rgb(255, 227, 106)'"), 'Hero CTA must retain its accessible yellow fill in both themes'
@@ -73,6 +83,7 @@ def run_checks(browser, media, evidence):
             for role,path in [('student','/student'),('instructor','/instructor/courses'),('admin','/admin')]:
                 rolepage,rstate=fixture(role,theme);rolepage.goto(harness.ORIGIN+path)
                 expect(rolepage.get_by_role('heading',name='Aaj kya padhein, Fixture?' if role=='student' else 'My courses' if role=='instructor' else 'Har lesson ke peechhe, aap.')).to_be_visible()
+                expect(rolepage.get_by_role('link',name='Praneet Vidyapeeth dashboard',exact=True)).to_be_visible()
                 for width in [320,1440]:
                     rolepage.set_viewport_size({'width':width,'height':1000});fits(rolepage,role+' '+str(width)+'px '+theme);screen(rolepage,role+'-'+str(width)+'-'+theme+'.png')
                 zoom(rolepage,role+' '+theme)

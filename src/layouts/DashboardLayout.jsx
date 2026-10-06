@@ -1,3 +1,4 @@
+import { BRAND_NAME } from "../config/brand.js";
 import Brand from "../components/Brand.jsx";
 import { ThemeToggle } from "../theme/ThemeProvider.jsx";
 import { toast } from "../services/notifications.jsx";
@@ -21,7 +22,7 @@ export default function DashboardLayout() {
   const navClass = ({ isActive }) => `workspace-nav ${isActive ? "workspace-nav-active" : ""}`;
   return <div className="workspace-shell min-h-screen">
     <header className="workspace-header"><div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
-      <Link to="/dashboard" className="flex shrink-0 items-center"><Brand /></Link>
+      <Link to="/dashboard" aria-label={`${BRAND_NAME} dashboard`} className="flex shrink-0 items-center"><Brand /></Link>
       <nav aria-label="Main navigation" className="hidden items-center gap-1 md:flex"><NavLink end to={dashboardPath} className={navClass}><LayoutDashboard size={16} />Dashboard</NavLink><NavLink to={managementPath} className={navClass}><BookOpen size={16} />{managementLabel}</NavLink>{user?.role === "student" && <NavLink to="/payments" className={navClass}>Payments</NavLink>}</nav>
       <div className="flex items-center gap-2 sm:gap-3"><ThemeToggle /><div className="hidden max-w-44 text-right sm:block"><p className="truncate text-sm font-semibold">{user?.name}</p><p className="mt-0.5 text-xs capitalize text-muted">{user?.role}</p></div><button aria-label="Sign out" onClick={handleLogout} disabled={loading} className="btn-secondary gap-2 px-3" type="button"><LogOut size={16} /><span className="hidden sm:inline">{loading ? "Signing out…" : "Sign out"}</span></button></div>
     </div><nav aria-label="Mobile navigation" className="mx-auto flex max-w-7xl flex-wrap gap-1 border-t border-slate-100 dark:border-slate-800 px-4 py-2 md:hidden"><NavLink end to={dashboardPath} className={navClass}>Dashboard</NavLink><NavLink to={managementPath} className={navClass}>{managementLabel}</NavLink>{user?.role === "student" && <NavLink to="/payments" className={navClass}>Payments</NavLink>}</nav></header>
