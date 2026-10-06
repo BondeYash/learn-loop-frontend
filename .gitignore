@@ -31,3 +31,6 @@ Thumbs.db
 .wrangler/
 .dev.vars
 .dev.vars.*
+
+# Generated locally and in CI from pinned import dependencies
+public/import-assets/

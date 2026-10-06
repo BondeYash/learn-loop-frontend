@@ -1,18 +1,22 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import axiosInstance, { errorMessage } from "../../services/axiosInstance.js";
 import { useDecision } from "../../components/DecisionProvider.jsx";
 import WorkspaceIntro from "../../components/WorkspaceIntro.jsx";
 
+import AssessmentQuestionFields from "../../components/AssessmentQuestionFields.jsx";
+const QuestionImport = lazy(() => import("../../components/QuestionImport.jsx"));
+
 const blankQuestion = () => ({ prompt: "", options: ["", ""], correctIndex: null, explanation: "", topic: "" });
 function AssessmentEditor({ assessment, newKind, chapters, courseId, onSaved, onCancel }) {
   const initial = useMemo(() => assessment ? { title: assessment.title, kind: assessment.kind, module: assessment.moduleId, durationMinutes: assessment.durationMinutes, questions: assessment.questions } : { title: "", kind: newKind, module: newKind === "quiz" ? chapters[0]?._id || null : null, durationMinutes: newKind === "mock" ? 30 : null, questions: [] }, [assessment, newKind, chapters]);
+  const [importOpen, setImportOpen] = useState(false);
   const [form, setForm] = useState(initial), [busy, setBusy] = useState(false), [error, setError] = useState("");
   const baseline = useRef(JSON.stringify(initial)), pending = useRef(false), decide = useDecision(), requestId = useRef(crypto.randomUUID()), action = useRef(null);
   useEffect(() => () => action.current?.abort(), []);
   const updateQuestion = (index, patch) => setForm((f) => ({ ...f, questions: f.questions.map((q, i) => i === index ? { ...q, ...patch } : q) }));
   const save = async (status) => {
-    if (pending.current) return; pending.current = true; setBusy(true); setError("");
+    if (pending.current || importOpen || status === "published" && form.questions.some((q) => q.importReview && !q.importReview.checked)) return; pending.current = true; setBusy(true); setError("");
     const controller = new AbortController(); action.current = controller;
     try {
       const path = `/courses/${courseId}/assessments${assessment ? `/${assessment.id}` : ""}`;
@@ -27,26 +31,21 @@ function AssessmentEditor({ assessment, newKind, chapters, courseId, onSaved, on
   return <form className="card mt-6" onSubmit={(e) => { e.preventDefault(); save("published"); }}>
     <h2 className="text-2xl font-semibold">{assessment ? "Edit" : "Create"} {form.kind === "mock" ? "course mock test" : "chapter quiz"}</h2>
     <p className="mt-3 text-sm leading-7 text-muted">Save a draft to retain your work before leaving. Publishing requires complete questions, distinct options, a correct answer and an explanation. Existing attempts keep their original question version.</p>
-    <fieldset disabled={busy} className="mt-5 min-w-0 space-y-5">
+    <fieldset disabled={busy || importOpen} className="mt-5 min-w-0 space-y-5">
       <label className="block text-sm font-semibold">Test title<input className="input-field mt-2" required maxLength={160} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></label>
       <div className="grid gap-5 sm:grid-cols-2"><label className="block text-sm font-semibold">Assessment type<select aria-label="Assessment type" className="input-field mt-2" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value, module: e.target.value === "quiz" ? chapters[0]?._id || null : null, durationMinutes: e.target.value === "mock" ? form.durationMinutes || 30 : form.durationMinutes })}><option value="quiz">Chapter quiz</option><option value="mock">Timed course mock test</option></select></label><label className="block text-sm font-semibold">Time limit in minutes {form.kind === "quiz" && "(optional)"}<input className="input-field mt-2" type="number" min={1} max={180} step={1} required={form.kind === "mock"} value={form.durationMinutes ?? ""} onChange={(e) => setForm({ ...form, durationMinutes: e.target.value === "" ? null : Number(e.target.value) })} /></label></div>
       {form.kind === "quiz" && <label className="block text-sm font-semibold">Chapter<select aria-label="Chapter" className="input-field mt-2" required value={form.module || ""} onChange={(e) => setForm({ ...form, module: e.target.value })}><option value="">Choose a chapter</option>{chapters.map((m) => <option key={m._id} value={m._id}>{m.title}</option>)}</select></label>}
       <p className="text-sm leading-6 text-muted">1 point per correct answer; 0 for incorrect or unanswered questions. No negative marking. Maximum 40 questions, 2–6 options each and a 180-minute timer.</p>
       {!form.questions.length && <p className="rounded-xl border border-line p-4 text-sm">No questions authored yet. Add your own reviewed questions below.</p>}
-      {form.questions.map((q, i) => <fieldset key={i} className="min-w-0 rounded-2xl border border-line p-4 sm:p-5"><legend className="px-2 font-semibold">Question {i + 1}</legend>
-        <label className="block text-sm font-semibold">Question text {i + 1}<textarea aria-label={`Question text ${i + 1}`} className="input-field mt-2" rows={3} maxLength={1200} value={q.prompt} onChange={(e) => updateQuestion(i, { prompt: e.target.value })} /></label>
-        <div className="mt-4 space-y-3">{q.options.map((option, o) => <div className="flex items-end gap-2" key={o}><label className="min-w-0 flex-1 text-sm font-semibold">Question {i + 1}, option {o + 1}<input aria-label={`Question ${i + 1}, option ${o + 1}`} className="input-field mt-2" maxLength={400} value={option} onChange={(e) => updateQuestion(i, { options: q.options.map((v, n) => n === o ? e.target.value : v) })} /></label><button className="btn-secondary !px-3" type="button" disabled={q.options.length <= 2} aria-label={`Remove question ${i + 1} option ${o + 1}`} onClick={() => updateQuestion(i, { options: q.options.filter((_, n) => n !== o), correctIndex: q.correctIndex === o ? null : q.correctIndex > o ? q.correctIndex - 1 : q.correctIndex })}>×</button></div>)}</div>
-        <button className="btn-secondary mt-3" type="button" disabled={q.options.length >= 6} onClick={() => updateQuestion(i, { options: [...q.options, ""] })}>Add option to question {i + 1}</button>
-        <label className="mt-4 block text-sm font-semibold">Correct answer for question {i + 1}<select aria-label={`Correct answer for question ${i + 1}`} className="input-field mt-2" value={q.correctIndex ?? ""} onChange={(e) => updateQuestion(i, { correctIndex: e.target.value === "" ? null : Number(e.target.value) })}><option value="">Choose the correct option</option>{q.options.map((_, o) => <option key={o} value={o}>Option {o + 1}</option>)}</select></label>
-        <label className="mt-4 block text-sm font-semibold">Explanation for question {i + 1}<textarea aria-label={`Explanation for question ${i + 1}`} className="input-field mt-2" rows={3} maxLength={2000} value={q.explanation} onChange={(e) => updateQuestion(i, { explanation: e.target.value })} /></label>
-        <label className="mt-4 block text-sm font-semibold">Topic tag for question {i + 1} (optional)<input aria-label={`Topic tag for question ${i + 1} (optional)`} className="input-field mt-2" maxLength={80} value={q.topic} onChange={(e) => updateQuestion(i, { topic: e.target.value })} /><span className="mt-2 block font-normal leading-6 text-muted">Use consistent author-defined tags to group practice results.</span></label>
-        <button className="btn-danger mt-4" type="button" onClick={async () => { if (await decide({ title: "Remove this question?", body: "The saved assessment changes only after you save or publish. Existing attempts retain their questions.", confirmLabel: "Remove question", destructive: true })) setForm((f) => ({ ...f, questions: f.questions.filter((_, n) => n !== i) })); }}>Remove question {i + 1}</button>
-      </fieldset>)}
+      {form.questions.map((q, i) => <AssessmentQuestionFields key={i} question={q} number={i + 1} onChange={(next) => updateQuestion(i, next)} onRemove={async () => { if (await decide({ title: "Remove this question?", body: "The saved assessment changes only after you save or publish. Existing attempts retain their questions.", confirmLabel: "Remove question", destructive: true })) setForm((f) => ({ ...f, questions: f.questions.filter((_, n) => n !== i) })); }} />)}
       <button className="btn-secondary" type="button" disabled={form.questions.length >= 40} onClick={() => setForm({ ...form, questions: [...form.questions, blankQuestion()] })}>Add question</button>
     </fieldset>
+    <button className="btn-secondary mt-5" type="button" disabled={busy || importOpen} onClick={() => setImportOpen(true)}>Import PDF, Excel or CSV</button>
+    {importOpen && <Suspense fallback={<p role="status" className="mt-4">Loading question importer…</p>}><QuestionImport existingCount={form.questions.length} onClose={() => setImportOpen(false)} onApply={(questions, mode) => { setForm((f) => ({ ...f, questions: mode === "replace" ? questions : [...f.questions, ...questions] })); setImportOpen(false); setError(""); }} /></Suspense>}
+    {form.questions.some((q) => q.importReview && !q.importReview.checked) && <p className="mt-4 text-sm leading-6">Imported questions need review before publishing. Complete each question and check its review box; Save draft retains your progress.</p>}
     {error && <p role="alert" className="mt-5 text-red-700 dark:text-red-300">{error}</p>}
     {busy && <p role="status" className="mt-5">Saving assessment…</p>}
-    <div className="mt-6 flex flex-wrap gap-3"><button className="btn-secondary" type="button" disabled={busy} onClick={() => save("draft")}>Save draft</button><button className="btn-primary" disabled={busy}>Publish {form.kind === "mock" ? "mock test" : "quiz"}</button><button className="btn-secondary" type="button" disabled={busy} onClick={cancel}>{assessment ? "Back to tests" : "Cancel"}</button></div>
+    <div className="mt-6 flex flex-wrap gap-3"><button className="btn-secondary" type="button" disabled={busy || importOpen} onClick={() => save("draft")}>Save draft</button><button className="btn-primary" disabled={busy || importOpen || form.questions.some((q) => q.importReview && !q.importReview.checked)}>Publish {form.kind === "mock" ? "mock test" : "quiz"}</button><button className="btn-secondary" type="button" disabled={busy || importOpen} onClick={cancel}>{assessment ? "Back to tests" : "Cancel"}</button></div>
     {assessment?.status === "published" && <p className="mt-3 text-sm leading-6 text-muted">Saving as a draft stops new attempts until you publish again.</p>}
   </form>;
 }

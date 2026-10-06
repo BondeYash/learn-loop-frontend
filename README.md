@@ -12,7 +12,7 @@ Reference-led dashboard/course design, private course thumbnail upload/replace a
 
 ## Run locally
 
-Use Node.js 22.12+. From this repository root, run `npm ci`, copy `.env.example` to `.env` only if absent, then `npm run dev -- --host 127.0.0.1 --strictPort`. Start the backend separately on port 5000. Open http://localhost:5173. No parent client/server directory is needed.
+Use Node.js 22.13+. From this repository root, run `npm ci`, copy `.env.example` to `.env` only if absent, then `npm run dev -- --host 127.0.0.1 --strictPort`. Start the backend separately on port 5000. Open http://localhost:5173. No parent client/server directory is needed.
 
 Keep `VITE_API_URL=/api`; Vite proxies local API requests. All VITE variables are public, so never put secrets here. Stack: React 18, Vite 7, React Router 7, Redux Toolkit, Axios and Tailwind CSS.
 
@@ -45,3 +45,5 @@ Instructor/admin-authored chapter quizzes and timed mock tests, learner attempts
 Current staged completion, verification scope and remaining launch gaps: [release evidence](docs/staged-release.md). Optional source measurement and interest collection remain off until owner configuration: [acquisition](docs/acquisition.md).
 
 Instructor/student mock-test access and local end-to-end verification: [mock-test flow](docs/assessments.md#instructor-to-student-mock-test-flow--2026-10-06).
+
+PDF, Excel (`.xlsx`) and UTF-8 CSV question import with local English/Hindi OCR, five-question review, source references and draft publication checks: [supported formats, limits and verification](docs/assessment-import.md).
