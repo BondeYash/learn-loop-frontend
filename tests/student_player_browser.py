@@ -58,8 +58,7 @@ def run_checks(browser, media, evidence):
         page.on("pageerror", lambda error: errors.append(str(error)))
         if no_fullscreen:
             page.add_init_script("Object.defineProperty(document, 'fullscreenEnabled', {get: () => false})")
-        state = {"count": 0, "short": short, "denied": False}
-        initial_expiry = int(time.time() * 1000) + 35000
+        state = {"count": 0, "short": short, "denied": False, "initial_expiry": None}
 
         def route_request(route):
             request = route.request
@@ -97,7 +96,11 @@ def run_checks(browser, media, evidence):
                 if state["denied"]:
                     route.fulfill(status=403, json={"message": "Course access is no longer available."})
                     return
-                expires = initial_expiry if state["short"] else page.evaluate("Date.now() + 300000")
+                # Start the synthetic ticket lifetime when issued, so cold Vite
+                # compilation cannot consume its renewal window before playback.
+                if state["short"] and state["initial_expiry"] is None:
+                    state["initial_expiry"] = page.evaluate("Date.now() + 40000")
+                expires = state["initial_expiry"] if state["short"] else page.evaluate("Date.now() + 300000")
                 data = {"url": f"{ORIGIN}/__fixture__/video.mp4?ticket={state['count']}", "expiresAt": expires}
             elif url.path == "/api/admin/overview":
                 data = {"instructors": 1, "students": 1, "courses": 1, "published": 1, "videos": 1, "ready": 1, "suspended": 0}
@@ -140,7 +143,7 @@ def run_checks(browser, media, evidence):
         check(page.locator("a[download], a[href*='video.mp4']").count() == 0, "no download action or raw video URL link is exposed")
         video.evaluate("v => {v.currentTime = 5; v.muted = true; return v.play()}")
         old = video_state(page)["src"]
-        page.wait_for_function("old => document.querySelector('video')?.currentSrc !== old && !document.querySelector('video')?.paused && document.querySelector('video')?.currentTime >= 5", arg=old, timeout=12000)
+        page.wait_for_function("old => document.querySelector('video')?.currentSrc !== old && !document.querySelector('video')?.paused && document.querySelector('video')?.currentTime >= 5", arg=old, timeout=15000)
         check(True, "automatic ticket renewal preserves playing state and position")
         page.get_by_role("button", name="Enter video fullscreen").focus()
         page.keyboard.press("Enter")
@@ -166,7 +169,7 @@ def run_checks(browser, media, evidence):
         paused, _ = fixture(short=True)
         paused.locator("video").evaluate("v => { v.pause(); v.currentTime = 7 }")
         old = video_state(paused)["src"]
-        paused.wait_for_function("old => document.querySelector('video')?.currentSrc !== old && document.querySelector('video')?.readyState >= 2", arg=old, timeout=12000)
+        paused.wait_for_function("old => document.querySelector('video')?.currentSrc !== old && document.querySelector('video')?.readyState >= 2", arg=old, timeout=15000)
         check(video_state(paused)["paused"] and abs(video_state(paused)["time"] - 7) < .2, "automatic renewal preserves paused position")
 
         # Simulate a denied renewal without contacting a server or changing permissions.
