@@ -1,8 +1,18 @@
-export const IMPORT_LIMITS = Object.freeze({ bytes: 10 * 1024 * 1024, csvBytes: 2 * 1024 * 1024, pages: 20, ocrPages: 6, questions: 40, rows: 500, columns: 24, cell: 4096, text: 500000, expanded: 16 * 1024 * 1024, entries: 128, pixels: 2500000, reviewPage: 5 });
+export const IMPORT_LIMITS = Object.freeze({ bytes: 10 * 1024 * 1024, csvBytes: 2 * 1024 * 1024, pages: 20, ocrPages: 6, questions: 40, detectedQuestions: 500, blockOptions: 80, rows: 500, columns: 24, cell: 4096, text: 500000, expanded: 16 * 1024 * 1024, entries: 128, pixels: 2500000, reviewPage: 5 });
 export const TABLE_FIELDS = ["question", "option_a", "option_b", "option_c", "option_d", "option_e", "option_f", "correct_answer", "explanation", "topic"];
 export const REVIEW_FLAGS = { table: "Imported spreadsheet/CSV: verify against the source row.", pdf_text: "Detected PDF text: verify question boundaries and reading order.", ocr: "OCR can misread letters, numbers and Hindi glyphs. Verify against the PDF.", low_confidence: "OCR confidence is low; carefully correct the text.", layout: "Ambiguous layout or numbering: check boundaries, columns and options.", diagram: "An image/diagram may be required. Describe it fully in text or remove the question.", separate_key: "Answer came from a separate key section. Verify its question number.", missing_key: "No unambiguous answer key was found. Select the correct option yourself.", missing_explanation: "No explanation was supplied. Add a reviewed explanation.", manual: "Manually mapped/transcribed content needs review." };
 const fail = (message) => { throw new Error(message); };
 export const blankImportedQuestion = (source = "Manual transcription") => ({ prompt: "", options: ["", ""], correctIndex: null, explanation: "", topic: "", importReview: { source, flags: ["manual"], checked: false } });
+export function draftQuestionErrors(q) {
+  const errors = [];
+  if (typeof q.prompt !== "string" || q.prompt.length > 1200) errors.push("Question text must fit the 1200-character limit.");
+  if (!Array.isArray(q.options) || q.options.length < 2 || q.options.length > 6) errors.push("Each question needs 2–6 options. Split merged questions in the extracted text and detect again, or remove extra options after checking the source.");
+  if (Array.isArray(q.options) && q.options.some((s) => typeof s !== "string" || s.length > 400)) errors.push("Each option must fit the 400-character limit.");
+  if (q.correctIndex !== null && (!Number.isInteger(q.correctIndex) || q.correctIndex < 0 || q.correctIndex >= (q.options?.length || 0))) errors.push("The answer must refer to an option in this question.");
+  if (typeof q.explanation !== "string" || q.explanation.length > 2000) errors.push("The explanation must fit the 2000-character limit.");
+  if (typeof q.topic !== "string" || q.topic.length > 80) errors.push("Topic tags have an 80-character limit.");
+  return errors;
+}
 export function questionErrors(q) {
   const errors = [];
   if (!q.prompt?.trim() || q.prompt.length > 1200) errors.push("Question text is required, up to 1200 characters.");
@@ -14,7 +24,7 @@ export function questionErrors(q) {
   return errors;
 }
 const finish = (q) => {
-  if (q.options.length > 6) fail("A detected question has more than 6 options. Edit the source or split it manually before importing.");
+  if (q.options.length > 6) { q.importReview.flags.push("layout"); q.correctIndex = null; }
   while (q.options.length < 2) q.options.push("");
   if (q.correctIndex === null) q.importReview.flags.push("missing_key");
   if (!q.explanation.trim()) q.importReview.flags.push("missing_explanation");
@@ -81,37 +91,80 @@ export function questionsFromTable(table, mapping) {
 }
 const westernDigits = (s) => s.replace(/[०-९]/g, (v) => String(v.charCodeAt(0) - 0x0966));
 const labelIndex = (s) => /^[A-F]$/i.test(s) ? s.toUpperCase().charCodeAt(0) - 65 : ["क", "ख", "ग", "घ", "ङ", "च"].indexOf(s);
-export function questionsFromPages(pages) {
+// Normalize extraction-only formatting marks, preserving Hindi joiners and the
+// untouched source pages. Match offsets still refer to the normalized line.
+const readableLine = (s) => s.replace(/[\u200B\u200E\u200F\u202A-\u202E\u2060\u2066-\u2069\uFEFF]/g, "").trim();
+function questionHeading(line) {
+  const numeric = westernDigits(line);
+  const match = numeric.match(/^(?:(?:Q(?:uestion)?|प्रश्न|सवाल)\s*[.:]?\s*)?(?:\((\d{1,3})\)|([1-9]\d{0,2})[.):])\s*(\S.*)$/i);
+  if (match) {
+    // A decimal in a wrapped prompt/option is not a new question number.
+    if (/^[1-9]\d{0,2}\.\d/.test(numeric)) return null;
+    return { number: Number(match[1] || match[2]), prompt: line.slice(match[0].length - match[3].length) };
+  }
+  const prefixed = numeric.match(/^(?:Q(?:uestion)?|प्रश्न|सवाल)\s*[.:]?\s*([1-9]\d{0,2})\s+(.+)$/i);
+  return prefixed ? { number: Number(prefixed[1]), prompt: line.slice(prefixed[0].length - prefixed[2].length) } : null;
+}
+function labelledOptions(line) {
+  const pattern = /(?:^|\s)(?:\(([A-Fकखगघङच])\)|([A-Fकखगघङच])[.)])\s*/gi;
+  const matches = [...line.matchAll(pattern)];
+  if (!matches.length || matches[0].index !== 0) return [];
+  return matches.map((m, i) => ({ label: labelIndex(m[1] || m[2]), text: line.slice(m.index + m[0].length, matches[i + 1]?.index ?? line.length).trim() }));
+}
+function hasFollowingOptions(lines, position) {
+  const labels = [];
+  for (let i = position + 1; i < Math.min(lines.length, position + 6); i++) {
+    if (questionHeading(lines[i].line)) break;
+    labels.push(...labelledOptions(lines[i].line).map((o) => o.label));
+    if (labels.length >= 2) return labels[0] === 0 && labels[1] === 1;
+  }
+  return false;
+}
+export function detectPageQuestions(pages) {
   if (pages.reduce((n, p) => n + p.text.length, 0) > IMPORT_LIMITS.text) fail("Extracted text is too large. Split the document into smaller files.");
   const candidates = [], keys = new Map(); let current = null, field = "prompt", keySection = false;
   const flagPage = (q, page) => {
     q.pages.add(page.page); q.importReview.flags.push(...(page.flags || ["pdf_text"]));
     if (Number.isFinite(page.confidence)) q.importReview.confidence = Math.min(q.importReview.confidence ?? 100, Math.round(page.confidence));
   };
-  for (const page of pages) for (const raw of page.text.split(/\r?\n/)) {
-    const line = raw.trim(); if (!line) continue;
+  const lines = pages.flatMap((page) => page.text.split(/\r?\n/).map((raw) => ({ page, line: readableLine(raw) })).filter((entry) => entry.line));
+  for (let position = 0; position < lines.length; position++) {
+    const { page, line } = lines[position];
     if (/^(answer\s*key|answers\s*:?$|उत्तर\s*(कुंजी|माला)|उत्तरमाला)/i.test(line)) { keySection = true; continue; }
     const numeric = westernDigits(line);
+    const heading = questionHeading(line);
+    // A question beginning with "A ..." can resemble a key entry. Require a
+    // following A/B option pair before returning from a key section to authoring.
+    if (keySection && heading && hasFollowingOptions(lines, position)) keySection = false;
     if (keySection) {
-      const matches = [...numeric.matchAll(/(?:^|[\s,;])(?:Q\s*)?(\d{1,3})\s*[.):=-]\s*([A-Fकखगघङच])(?:\b|\s|$)/gi)];
-      for (const match of matches) { const n = Number(match[1]), index = labelIndex(match[2]), old = keys.get(n); keys.set(n, { index: old && old.index !== index ? null : index, page: page.page }); }
-      continue;
+      const matches = [...numeric.matchAll(/(?:^|[\s,;])(?:Q\.?\s*)?(\d{1,3})\s*[.):=-]\s*([A-Fकखगघङच])(?=\s|[).,;]|$)/gi)];
+      for (const match of matches) { const n = Number(match[1]), index = labelIndex(match[2]), old = keys.get(n); keys.set(n, { index: old && old.index !== index ? null : index, pages: new Set([...(old?.pages || []), page.page]) }); }
+      if (matches.length || !heading) continue;
+      keySection = false;
     }
-    const option = numeric.match(/^(?:\(([A-Fकखगघङच])\)|([A-Fकखगघङच])[.)])\s+(.+)$/i);
-    if (option && current) { current.options.push(line.slice(option[0].length - option[3].length)); current.labels.push(labelIndex(option[1] || option[2])); field = "option"; flagPage(current, page); continue; }
-    const heading = numeric.match(/^(?:Q(?:uestion)?\.?\s*)?(\d{1,3})[.):]\s+(.+)$/i);
+    // Explicit section titles are kept in the source preview, not appended to
+    // the preceding question's last option.
+    const options = labelledOptions(line);
+    if (!options.length && !heading && /^[\p{L}].{0,120}\s+\(\s*\d{1,3}\s*[-–]\s*\d{1,3}\s*\)$/u.test(numeric)) { current = null; continue; }
+    if (options.length && current) {
+      if (current.options.length + options.length > IMPORT_LIMITS.blockOptions) fail(`PDF page ${page.page}, question ${current.number}: more than 80 option lines form one block. Correct its numbered boundaries in the extracted text, then detect again. All source text is retained.`);
+      for (const option of options) { current.options.push(option.text); current.labels.push(option.label); }
+      if (options.length > 1) { current.ambiguous = true; current.importReview.flags.push("layout"); }
+      field = "option"; flagPage(current, page); continue;
+    }
     if (heading) {
-      current = { prompt: line.slice(heading[0].length - heading[2].length), options: [], correctIndex: null, explanation: "", topic: "", importReview: { source: "", flags: [], checked: false }, number: Number(heading[1]), labels: [], pages: new Set(), explicitKey: null, explicitConflict: false };
+      current = { prompt: heading.prompt, options: [], correctIndex: null, explanation: "", topic: "", importReview: { source: "", flags: [], checked: false }, number: heading.number, labels: [], pages: new Set(), explicitKey: null, explicitConflict: false, ambiguous: false };
       flagPage(current, page); candidates.push(current); field = "prompt";
-      if (candidates.length > IMPORT_LIMITS.questions) fail("Detected more than 40 question boundaries. Split the source or correct its numbering; nothing was applied.");
+      if (candidates.length > IMPORT_LIMITS.detectedQuestions) fail("Detected more than 500 question boundaries. Split the source or correct its numbering in the extracted text; nothing was applied.");
       continue;
     }
     if (!current) continue;
     flagPage(current, page);
-    const answer = line.match(/^(?:correct\s*answer|answer|ans\.?|उत्तर)\s*[:=-]\s*([A-F1-6कखगघङच])\s*[.)]?\s*$/i);
+    const answer = numeric.match(/^(?:correct\s*answer|answer|ans\.?|उत्तर)\s*[:=-]\s*([A-F1-6कखगघङच])\s*[.)]?\s*$/i);
     if (answer) { const key = /^[1-6]$/.test(answer[1]) ? Number(answer[1]) - 1 : labelIndex(answer[1]); if (current.explicitKey !== null && current.explicitKey !== key) current.explicitConflict = true; current.explicitKey = key; field = "prompt"; continue; }
     const explanation = line.match(/^(?:explanation|solution|व्याख्या|समाधान)\s*[:=-]\s*(.*)$/i);
     if (explanation) { current.explanation = explanation[1]; field = "explanation"; continue; }
+    if (/^[^\s]{1,3}[.)]\s+/.test(line)) { current.ambiguous = true; current.importReview.flags.push("layout"); }
     if (field === "option" && current.options.length) current.options[current.options.length - 1] += "\n" + line;
     else current[field] += "\n" + line;
     if (/(diagram|figure|image|चित्र|आरेख)/i.test(line)) current.importReview.flags.push("diagram");
@@ -120,14 +173,24 @@ export function questionsFromPages(pages) {
   return candidates.map((q) => {
     if (numbers.filter((n) => n === q.number).length > 1 || q.labels.some((v, i) => v !== i)) q.importReview.flags.push("layout");
     const key = keys.get(q.number);
-    if (key) { q.importReview.flags.push("separate_key"); q.pages.add(key.page); }
+    if (key) { q.importReview.flags.push("separate_key"); for (const ref of key.pages) flagPage(q, pages.find((p) => p.page === ref)); if (key.index === null) q.importReview.flags.push("layout"); }
     const candidate = q.explicitKey ?? key?.index ?? null;
     q.correctIndex = q.labels.every((v, i) => v === i) && candidate !== null && candidate < q.options.length ? candidate : null;
     if (q.explicitKey !== null && key && key.index !== q.explicitKey) { q.correctIndex = null; q.importReview.flags.push("layout"); }
-    if (q.explicitConflict || numbers.filter((n) => n === q.number).length > 1) { q.correctIndex = null; q.importReview.flags.push("layout"); }
+    if (q.explicitConflict || q.ambiguous || numbers.filter((n) => n === q.number).length > 1) { q.correctIndex = null; q.importReview.flags.push("layout"); }
     if (/(diagram|figure|image|चित्र|आरेख)/i.test(q.prompt)) q.importReview.flags.push("diagram");
     q.importReview.source = `PDF page${q.pages.size > 1 ? "s" : ""} ${[...q.pages].join(", ")} · question ${q.number}`;
-    const { number, labels, pages: refs, explicitKey, explicitConflict, ...question } = q; void number; void labels; void refs; void explicitKey; void explicitConflict;
+    const { number, labels, pages: refs, explicitKey, explicitConflict, ambiguous, ...question } = q; void number; void labels; void refs; void explicitKey; void explicitConflict; void ambiguous;
     return finish(question);
   });
+}
+export function selectPageQuestions(detected, start, end) {
+  if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < start || end > detected.length) fail(`Choose a valid detected-question range from 1 to ${detected.length}.`);
+  if (end - start + 1 > IMPORT_LIMITS.questions) fail("Choose at most 40 detected questions for one assessment. Other questions remain in the source for a separate import.");
+  return detected.slice(start - 1, end);
+}
+export function questionsFromPages(pages) {
+  const detected = detectPageQuestions(pages);
+  if (detected.length > IMPORT_LIMITS.questions) fail("Detected more than 40 question boundaries. Choose a range in the PDF importer or split the source; nothing was applied.");
+  return detected;
 }

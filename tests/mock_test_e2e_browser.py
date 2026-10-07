@@ -10,6 +10,7 @@ import subprocess
 from urllib.parse import urlparse
 from playwright.sync_api import expect
 import student_player_browser as harness
+from assessment_feedback_assertions import check_active_feedback_privacy
 
 def run_checks(browser, media, evidence):
     backend_dir=Path(os.environ['MOCK_TEST_BACKEND_DIR']).resolve()
@@ -40,7 +41,7 @@ def run_checks(browser, media, evidence):
                 data=response.json();attempt=data.get('data',{}).get('attempt')
                 if attempt and attempt.get('status')=='active':
                     active_payloads.append(attempt)
-                    assert not any(key in json.dumps(attempt) for key in ['correctIndex','explanation','snapshot'])
+                    check_active_feedback_privacy(attempt)
                 key='drop_create' if req.method=='POST' and u.path.endswith('/assessments') else 'drop_answer' if u.path.endswith('/answers') else 'drop_submit' if u.path.endswith('/submit') else None
                 if key and state[key] and response.status<400:
                     state[key]=False;r.fulfill(status=503,json={'message':'Synthetic accepted response interrupted. Retry the same action.'});return

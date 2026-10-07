@@ -26,6 +26,14 @@ for (const lines of [["1. Digital question", "A. First", "B. Second", "Explanati
   const p = digital.addPage([612, 792]); lines.forEach((line, i) => p.drawText(line, { x: 50, y: 735 - i * 35, size: 18, font }));
 }
 await writeFile(path.join(out, "digital.pdf"), await digital.save());
+const recovery = await PDFDocument.create(), recoveryFont = await recovery.embedFont(StandardFonts.Helvetica);
+const recoveryLines = ["1. Unaffected first question", "A. First", "B. Second", "Answer: B", "Explanation: Supplied first explanation.", "2. Merged question block", "A. One", "B. Two", "C. Three", "D. Four", "Unnumbered second prompt", "A. Five", "B. Six", "C. Seven", "D. Eight", "4. Unaffected last question", "A. Left", "B. Right"];
+const recoveryPage = recovery.addPage([612, 792]); recoveryLines.forEach((line, i) => recoveryPage.drawText(line, { x: 45, y: 755 - i * 32, size: 16, font: recoveryFont }));
+await writeFile(path.join(out, "merged.pdf"), await recovery.save());
+const bank = await PDFDocument.create(), bankFont = await bank.embedFont(StandardFonts.Helvetica);
+for (let n = 1; n <= 100; n += 10) { const p = bank.addPage([612, 792]); for (let j = 0; j < 10; j++) [ `${n + j}. Synthetic bank question ${n + j}`, "A. First", "B. Second" ].forEach((line, k) => p.drawText(line, { x: 45, y: 755 - j * 70 - k * 20, size: 12, font: bankFont })); }
+for (let n = 1; n <= 100; n += 50) { const p = bank.addPage([612, 792]); p.drawText("Answer Key", { x: 45, y: 770, size: 12, font: bankFont }); for (let j = 0; j < 50; j++) p.drawText(`${n + j}. B) Second`, { x: 45, y: 745 - j * 14, size: 10, font: bankFont }); }
+await writeFile(path.join(out, "bank.pdf"), await bank.save());
 const many = await PDFDocument.create(); for (let i = 0; i < 21; i++) many.addPage([612, 792]); await writeFile(path.join(out, "too-many-pages.pdf"), await many.save());
 await writeFile(path.join(out, "corrupt.pdf"), "%PDF-1.7\ncorrupt synthetic document");
 const PDFKit = require("pdfkit"), locked = new PDFKit({ userPassword: "synthetic-only", ownerPassword: "synthetic-owner" }), lockedChunks = [];

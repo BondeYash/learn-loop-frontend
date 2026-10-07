@@ -72,7 +72,7 @@ async function pdf(bytes, { signal, language, forceOcr, progress }) {
       pages.push({ page: n, text: lines.text, flags: ["pdf_text", ...(lines.layout ? ["layout"] : []), ...(images && !useOcr ? ["diagram"] : [])] });
       if (useOcr) scan.push(n); page.cleanup();
     }
-    if (scan.length > IMPORT_LIMITS.ocrPages) throw new Error("More than 6 pages need OCR. Split the scanned document into files of at most 6 pages.");
+    if (scan.length > IMPORT_LIMITS.ocrPages) throw new Error(forceOcr ? "More than 6 pages need OCR with this setting. Turn off ‘Use OCR for every PDF page’ for a readable digital PDF, or split a scanned document into files of at most 6 pages. Nothing was applied." : "More than 6 pages need OCR. Split the scanned document into files of at most 6 pages.");
     if (scan.length) {
       progress(`Loading local ${language === "eng" ? "English" : "Hindi + English"} OCR assets…`);
       check(signal); ocr = ocrSession(signal, progress); await ocr.init(language);

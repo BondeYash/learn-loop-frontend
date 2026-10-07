@@ -12,6 +12,7 @@ import time
 from urllib.parse import urlparse
 from playwright.sync_api import expect
 import student_player_browser as harness
+from assessment_feedback_assertions import check_active_feedback_privacy
 
 def run_checks(browser, media, evidence):
     backend=Path(os.environ['MOCK_TEST_BACKEND_DIR']).resolve()
@@ -39,7 +40,7 @@ def run_checks(browser, media, evidence):
                 if r.request.method in ['POST','PUT'] and '/assessments' in u.path:writes.append(r.request.post_data_json)
                 response=r.fetch(url=api+u.path+('?' + u.query if u.query else ''))
                 attempt=response.json().get('data',{}).get('attempt')
-                if attempt and attempt.get('status')=='active':assert not any(k in json.dumps(attempt) for k in ['correctIndex','explanation','importReview','snapshot'])
+                if attempt and attempt.get('status')=='active':check_active_feedback_privacy(attempt)
                 r.fulfill(response=response)
             ctx.route('**/*',route)
             page.goto(harness.ORIGIN+'/login');page.get_by_label('Email',exact=True).fill(meta['users'][role]['email']);page.get_by_label('Password',exact=True).fill(meta['users'][role]['password']);page.get_by_role('button',name='Sign in',exact=True).click();page.wait_for_url('**/'+('instructor' if role=='owner' else 'student'));return page
