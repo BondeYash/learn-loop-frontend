@@ -1,6 +1,6 @@
 export const IMPORT_LIMITS = Object.freeze({ bytes: 10 * 1024 * 1024, csvBytes: 2 * 1024 * 1024, pages: 20, ocrPages: 6, questions: 40, detectedQuestions: 500, blockOptions: 80, rows: 500, columns: 24, cell: 4096, text: 500000, expanded: 16 * 1024 * 1024, entries: 128, pixels: 2500000, reviewPage: 5 });
 export const TABLE_FIELDS = ["question", "option_a", "option_b", "option_c", "option_d", "option_e", "option_f", "correct_answer", "explanation", "topic"];
-export const REVIEW_FLAGS = { table: "Imported spreadsheet/CSV: verify against the source row.", pdf_text: "Detected PDF text: verify question boundaries and reading order.", ocr: "OCR can misread letters, numbers and Hindi glyphs. Verify against the PDF.", low_confidence: "OCR confidence is low; carefully correct the text.", layout: "Ambiguous layout or numbering: check boundaries, columns and options.", diagram: "An image/diagram may be required. Describe it fully in text or remove the question.", separate_key: "Answer came from a separate key section. Verify its question number.", missing_key: "No unambiguous answer key was found. Select the correct option yourself.", missing_explanation: "No explanation was supplied. Add a reviewed explanation.", manual: "Manually mapped/transcribed content needs review." };
+export const REVIEW_FLAGS = { table: "Imported spreadsheet/CSV: verify against the source row.", pdf_text: "Detected PDF text: verify question boundaries and reading order.", ocr: "OCR can misread letters, numbers and Hindi glyphs. Verify against the PDF.", low_confidence: "OCR confidence is low; carefully correct the text.", layout: "Ambiguous layout or numbering: check boundaries, columns and options.", diagram: "An image/diagram may be required. Describe it fully in text or remove the question.", separate_key: "Answer came from a separate key section. Verify its question number.", missing_key: "No unambiguous answer key was found. Select the correct option yourself.", missing_explanation: "No explanation was supplied. Explanations are optional; you can leave this blank.", manual: "Manually mapped/transcribed content needs review." };
 const fail = (message) => { throw new Error(message); };
 export const blankImportedQuestion = (source = "Manual transcription") => ({ prompt: "", options: ["", ""], correctIndex: null, explanation: "", topic: "", importReview: { source, flags: ["manual"], checked: false } });
 export function draftQuestionErrors(q) {
@@ -9,7 +9,7 @@ export function draftQuestionErrors(q) {
   if (!Array.isArray(q.options) || q.options.length < 2 || q.options.length > 6) errors.push("Each question needs 2–6 options. Split merged questions in the extracted text and detect again, or remove extra options after checking the source.");
   if (Array.isArray(q.options) && q.options.some((s) => typeof s !== "string" || s.length > 400)) errors.push("Each option must fit the 400-character limit.");
   if (q.correctIndex !== null && (!Number.isInteger(q.correctIndex) || q.correctIndex < 0 || q.correctIndex >= (q.options?.length || 0))) errors.push("The answer must refer to an option in this question.");
-  if (typeof q.explanation !== "string" || q.explanation.length > 2000) errors.push("The explanation must fit the 2000-character limit.");
+  if (q.explanation != null && (typeof q.explanation !== "string" || q.explanation.length > 2000)) errors.push("The optional explanation must be text of at most 2000 characters.");
   if (typeof q.topic !== "string" || q.topic.length > 80) errors.push("Topic tags have an 80-character limit.");
   return errors;
 }
@@ -18,8 +18,8 @@ export function questionErrors(q) {
   if (!q.prompt?.trim() || q.prompt.length > 1200) errors.push("Question text is required, up to 1200 characters.");
   if (!Array.isArray(q.options) || q.options.length < 2 || q.options.length > 6 || q.options.some((s) => !s.trim() || s.length > 400)) errors.push("Use 2–6 nonempty options, up to 400 characters each.");
   if (Array.isArray(q.options) && new Set(q.options.map((s) => s.trim().toLocaleLowerCase())).size !== q.options.length) errors.push("Options must be distinct.");
-  if (!Number.isInteger(q.correctIndex) || q.correctIndex < 0 || q.correctIndex >= (q.options?.length || 0)) errors.push("Choose the correct option; the importer never guesses it.");
-  if (!q.explanation?.trim() || q.explanation.length > 2000) errors.push("A reviewed explanation is required, up to 2000 characters.");
+  if (!Number.isInteger(q.correctIndex) || q.correctIndex < 0 || q.correctIndex >= (q.options?.length || 0)) errors.push("Choose the correct option.");
+  if (q.explanation != null && (typeof q.explanation !== "string" || q.explanation.length > 2000)) errors.push("The optional explanation must be text of at most 2000 characters.");
   if ((q.topic || "").length > 80) errors.push("Topic tags have an 80-character limit.");
   return errors;
 }
