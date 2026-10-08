@@ -39,13 +39,6 @@ export default function App() {
     window.addEventListener("lms-password-change-required", passwordRequired);
     return () => { window.removeEventListener("lms-session-expired", expired); window.removeEventListener("storage", changed); window.removeEventListener("lms-password-change-required", passwordRequired); };
   }, [dispatch]);
-  const userId = user?.id;
-  useEffect(() => {
-    if (!userId) return;
-    const refresh = () => dispatch(fetchCurrentUser({ background: true }));
-    const timer = setInterval(refresh, 60_000);
-    return () => clearInterval(timer);
-  }, [dispatch, userId]);
   return <Routes key={user?.id || "signed-out"}>
     <Route element={<PublicLayout />}><Route path="/" element={<PublicCatalogPage home />} /><Route path="/catalog" element={<PublicCatalogPage />} /><Route path="/catalog/:slug" element={<PublicCoursePage />} /></Route>
     <Route element={<ProtectedRoute publicOnly />}><Route path="/login" element={<LoginPage />} /><Route path="/register" element={<RegisterPage />} /><Route path="/forgot-password" element={<ForgotPasswordPage />} /></Route>

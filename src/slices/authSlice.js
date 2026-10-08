@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axiosInstance, { errorMessage } from "../services/axiosInstance.js";
 // Remove legacy bearer credentials; sessions now live in HttpOnly cookies.
 try { localStorage.removeItem("lms_token"); } catch { /* Cookie sessions also work when browser storage is blocked. */ }
-const announce = () => { try { localStorage.setItem("lms_account_changed", `${Date.now()}-${Math.random()}`); } catch { /* Other tabs will still recheck their session periodically. */ } };
+const announce = () => { try { localStorage.setItem("lms_account_changed", `${Date.now()}-${Math.random()}`); } catch { /* API authorization still handles expired sessions. */ } };
 export const registerUser = createAsyncThunk("auth/register", async (payload, { rejectWithValue }) => {
   try { const result = (await axiosInstance.post("/auth/register", payload)).data.data; announce(); return result; }
   catch (error) { return rejectWithValue(errorMessage(error)); }
@@ -18,7 +18,7 @@ export const logout = createAsyncThunk("auth/logout", async (_, { rejectWithValu
 export const fetchCurrentUser = createAsyncThunk("auth/me", async (_, { rejectWithValue }) => {
   try { return (await axiosInstance.get("/auth/me")).data.data.user; }
   catch (error) { return rejectWithValue({ anonymous: error.response?.status === 401, message: errorMessage(error) }); }
-}, { condition: (_, { getState }) => getState().auth.status !== "checking" });
+}, { condition: (_, { getState }) => getState().auth.status !== "checking" && !getState().auth.sessionRequestId });
 const authSlice = createSlice({
   name: "auth",
   initialState: { user: null, status: "idle", loading: false, error: null, sessionRequestId: null },

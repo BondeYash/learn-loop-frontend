@@ -4,7 +4,7 @@ This slice provides instructor/admin authoring and student practice for generic 
 
 ## Authoring
 
-Open **Mock tests and quizzes** on an instructor course card, or **Manage mock tests** from curriculum/course preview. `/instructor/courses/:id/assessments` lists authored drafts and published assessments. Choose **Create mock test** for a timed course test (30 minutes initially, editable 1–180), or **Create chapter quiz** for an existing module. Add question text, 2–6 options, a correct answer, an optional explanation and an optional topic tag. Drafts may be incomplete or empty; saving persists them across refresh. Publishing requires complete reviewed content. Saving a published assessment as a draft stops new attempts. Existing attempts keep their original authored version.
+Open **Mock tests and quizzes** on an instructor course card, or **Manage mock tests** from curriculum/course preview. `/instructor/courses/:id/assessments` lists authored drafts and published assessments. Choose **Create mock test** for a timed course test (30 minutes initially, editable 1–180), or **Create chapter quiz** for an existing module. Add question text, 2–6 options, a correct answer, an optional explanation and an optional topic tag. Drafts may be incomplete or empty; saving persists them across refresh. Publishing requires complete question content and correct answers; individual review and explanations are optional. Saving a published assessment as a draft stops new attempts. Existing attempts keep their original authored version.
 
 Cancel uses an in-app confirmation for unsaved changes. Server conflicts/errors retain the form so the author can review or reload. Save drafts before leaving; unsaved edits are not automatically persisted. Limits are 40 assessments per course (including drafts), 40 questions per assessment, 1–180 timed minutes and 100 attempts per learner/assessment. Draft deletion/reclamation is pending.
 
@@ -29,7 +29,7 @@ On 2026-10-05, final lint, frontend unit tests, production build and Cloudflare 
 
 ## Instructor-to-student mock-test flow — 2026-10-06
 
-1. Instructor: **My courses → Mock tests and quizzes → Create mock test**. Enter the test title and duration. Add each question, 2–6 distinct options, its correct answer and an optional explanation. Save a draft while preparing; publish complete reviewed content. **Back to tests** returns to the draft/published list. Admins can manage a course through its curriculum or the same owner route.
+1. Instructor: **My courses → Mock tests and quizzes → Create mock test**. Enter the test title and duration. Add each question, 2–6 distinct options, its correct answer and an optional explanation. Save a draft while preparing; publish complete content without individual review checks. **Back to tests** returns to the draft/published list. Admins can manage a course through its curriculum or the same owner route.
 2. Student: open a course you can access, then **Mock tests**. Choose the published named mock, read its instructions and confirm start. Answer with the radio options, wait for saved status, and use numbered/previous/next navigation. Refresh or use history to resume the same active attempt; the timer continues.
 3. Submit and confirm, or let the timer expire. Review saved score, correct answers/explanations and history. In new mock attempts, each answered question reveals its correct option while active; unanswered keys and explanations remain hidden until the attempt ends. Editing a published test affects future attempts only; started attempts retain their original questions/explanations and feedback rules.
 
@@ -43,7 +43,7 @@ Final backend checks pass 133 tests, including 10 focused assessment tests. Fron
 
 ## PDF, Excel and CSV import — 2026-10-06
 
-The assessment editor now includes file import with local digital/scanned PDF extraction, English/Hindi OCR, column mapping, templates and five-question review. Append/replace requires explicit confirmation; original questions are retained until confirmation. Source warnings and checked-review state survive draft saves. Publishing requires complete checked imported content on both frontend and backend. [Import behavior, resource bounds, privacy, dependency licenses and actual-file verification](assessment-import.md).
+The assessment editor includes local digital/scanned PDF extraction, English/Hindi OCR, automatic standard spreadsheet mapping, templates and optional editing in groups of five. Append adds directly; replacing existing questions requires confirmation. Source metadata survives draft saves. Complete imported content publishes without individual review checks on both frontend and backend. [Import behavior, resource bounds, privacy, dependency licenses and actual-file verification](assessment-import.md).
 
 ## Immediate mock-answer feedback — 2026-10-07
 
@@ -57,8 +57,16 @@ Final local regression checks also pass the non-deploying Cloudflare dry run, re
 
 ## Optional explanations and publishing — 2026-10-08
 
-Explanation fields are labelled optional in both the editor and importer. Missing source explanations are informational and do not prevent checking a complete imported question as reviewed. Publish checks every question and displays a focused error summary with links to incomplete questions or missing source review. Saving drafts still permits unfinished questions. Ended attempts show supplied explanations without rendering empty explanation paragraphs.
+Explanation fields are labelled optional in both the editor and importer. Missing source explanations do not block publication. Publish automatically checks question structure and displays a focused error summary linking to incomplete questions. Saving drafts still permits unfinished questions. Ended attempts show supplied explanations without rendering empty explanation paragraphs.
 
-Frontend validation tests cover omitted/blank explanations, CSV and PDF content without explanations, source review, answer/option requirements and question limits. The authenticated instructor/student mock browser flow verifies draft/reload, publication without explanations, clickable validation errors, version snapshots, student scores, timers and both themes/mobile layouts.
+Frontend validation tests cover omitted/blank explanations, CSV and PDF content without explanations or review checks, answer/option requirements and question limits. The authenticated instructor/student mock browser flow verifies draft/reload, publication without explanations, clickable validation errors, version snapshots, student scores, timers and both themes/mobile layouts.
 
 Verification for this change passes frontend lint, all 44 unit tests, the production build and the Cloudflare dry run. Real cookie/API/MongoDB browser checks also pass CSV/XLSX/PDF/English-Hindi OCR import and instructor/admin recovery of a synthetic 100-question PDF bank, including publication without entering explanations and student scoring.
+
+## Top actions and session responsiveness — 2026-10-08
+
+Publish, Save draft, Import and Add question now sit in a sticky toolbar at the top of the editor, with a question count and automatic readiness status. Imported questions are collapsed and can be expanded to edit; no review checkboxes are required. The file importer exposes its actions at the top, automatically maps standard spreadsheet headers and uses the filename as the test title when the title is blank. The Back to curriculum control is a full-size button with an arrow and the course-specific destination.
+
+The app restores its HttpOnly cookie session once on opening and no longer polls /auth/me every minute. Login/register remain immediately usable during restoration. Cross-tab account changes, password-change events and API authorization still update the session. Concurrent session requests are deduplicated.
+
+Verification for simplified publishing passes all 45 frontend tests, lint, production build and the Cloudflare dry run, plus 20 focused backend assessment/feedback tests. Real cookie/API/MongoDB browser flows pass CSV/XLSX/digital PDF/English-Hindi OCR imports, instructor/admin 100-question recovery, unchecked publication, student scoring, session expiration, double-click protection and mobile/desktop/light/dark layouts. A browser clock advanced beyond one minute confirms no periodic session request. The back button has a 44px minimum target and the action toolbar remains visible while scrolling.

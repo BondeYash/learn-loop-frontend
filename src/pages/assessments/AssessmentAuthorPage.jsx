@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, FileUp, Plus } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import axiosInstance, { errorMessage } from "../../services/axiosInstance.js";
 import { useDecision } from "../../components/DecisionProvider.jsx";
@@ -18,6 +19,14 @@ function AssessmentEditor({ assessment, newKind, chapters, courseId, onSaved, on
   useEffect(() => () => action.current?.abort(), []);
   useEffect(() => { if (validationErrors.length) validationSummary.current?.focus(); }, [validationErrors]);
   useEffect(() => { setValidationErrors([]); setError(""); }, [form]);
+  const readiness = useMemo(() => publicationErrors(form.questions), [form.questions]);
+  const incompleteCount = new Set(readiness.filter((problem) => problem.index !== null).map((problem) => problem.index)).size;
+  const addQuestion = () => {
+    const number = form.questions.length + 1;
+    setForm((f) => ({ ...f, questions: [...f.questions, blankQuestion()] }));
+    requestAnimationFrame(() => document.getElementById(`assessment-question-${number}`)?.querySelector("textarea")?.focus());
+  };
+  const openImport = () => { setValidationErrors([]); setError(""); setImportOpen(true); };
   const updateQuestion = (index, patch) => setForm((f) => ({ ...f, questions: f.questions.map((q, i) => i === index ? { ...q, ...patch } : q) }));
   const save = async (status) => {
     if (pending.current || importOpen) return;
@@ -39,23 +48,33 @@ function AssessmentEditor({ assessment, newKind, chapters, courseId, onSaved, on
   };
   return <form className="card mt-6" onSubmit={(e) => { e.preventDefault(); save("published"); }}>
     <h2 className="text-2xl font-semibold">{assessment ? "Edit" : "Create"} {form.kind === "mock" ? "course mock test" : "chapter quiz"}</h2>
-    <p className="mt-3 text-sm leading-7 text-muted">Save a draft to retain your work before leaving. To publish, add complete questions, distinct options and a correct answer for each question. Explanations are optional. Existing attempts keep their original question version.</p>
-    {Boolean(validationErrors.length) && <div ref={validationSummary} role="alert" tabIndex={-1} className="mt-5 rounded-xl border border-red-400 p-4 text-sm leading-6 text-red-700 dark:text-red-300"><p className="font-semibold">Fix these items before publishing:</p><ul className="mt-2 list-disc pl-5">{validationErrors.map(({ index, message }, i) => <li key={i}>{index === null ? message : <a className="underline" href={`#assessment-question-${index + 1}`} onClick={() => document.getElementById(`assessment-question-${index + 1}`)?.focus()}>Question {index + 1}: {message}</a>}</li>)}</ul></div>}
-    <fieldset disabled={busy || importOpen} className="mt-5 min-w-0 space-y-5">
+    <p className="mt-3 text-sm leading-7 text-muted">Import your questions, then publish. Explanations and individual question review are optional.</p>
+    {!importOpen && <div className="assessment-actions mt-5" role="group" aria-label="Assessment actions" onClickCapture={(event) => { if (event.detail > 1) { event.preventDefault(); event.stopPropagation(); } }}>
+      <div className="flex flex-wrap gap-2">
+        <button className="btn-primary" type="submit" disabled={busy}>Publish {form.kind === "mock" ? "mock test" : "quiz"}</button>
+        <button className="btn-secondary" type="button" disabled={busy} onClick={() => save("draft")}>Save draft</button>
+        <button className="btn-secondary gap-2" type="button" disabled={busy} onClick={openImport}><FileUp size={17} aria-hidden="true" />Import PDF, Excel or CSV</button>
+        <button className="btn-secondary gap-2" type="button" disabled={busy || form.questions.length >= 40} onClick={addQuestion}><Plus size={17} aria-hidden="true" />Add question</button>
+        <button className="btn-secondary gap-2" type="button" disabled={busy} onClick={cancel}><ArrowLeft size={17} aria-hidden="true" />{assessment ? "Back to tests" : "Cancel"}</button>
+      </div>
+      <p className="mt-3 text-sm" role="status">{busy ? "Saving assessment…" : !form.questions.length ? "Import a file or add a question to begin." : !readiness.length ? `${form.questions.length} questions · Ready to publish` : `${form.questions.length} questions · ${incompleteCount} need corrections`}</p>
+    </div>}
+    {importOpen && <Suspense fallback={<p role="status" className="mt-4">Loading question importer…</p>}><QuestionImport existingCount={form.questions.length} onClose={() => setImportOpen(false)} onApply={(questions, mode, sourceTitle) => { setForm((f) => ({ ...f, title: f.title.trim() ? f.title : sourceTitle, questions: mode === "replace" ? questions : [...f.questions, ...questions] })); setImportOpen(false); setError(""); }} /></Suspense>}
+    {Boolean(validationErrors.length) && <div ref={validationSummary} role="alert" tabIndex={-1} className="mt-5 rounded-xl border border-red-400 p-4 text-sm leading-6 text-red-700 dark:text-red-300"><p className="font-semibold">Fix these items before publishing:</p><ul className="mt-2 list-disc pl-5">{validationErrors.map(({ index, message }, i) => <li key={i}>{index === null ? message : <a className="underline" href={`#assessment-question-${index + 1}`} onClick={() => { const field = document.getElementById(`assessment-question-${index + 1}`); field?.closest("details")?.setAttribute("open", ""); field?.focus(); }}>Question {index + 1}: {message}</a>}</li>)}</ul></div>}
+    <fieldset hidden={importOpen} disabled={busy || importOpen} className="mt-5 min-w-0 space-y-5">
       <label className="block text-sm font-semibold">Test title<input className="input-field mt-2" required maxLength={160} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></label>
       <div className="grid gap-5 sm:grid-cols-2"><label className="block text-sm font-semibold">Assessment type<select aria-label="Assessment type" className="input-field mt-2" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value, module: e.target.value === "quiz" ? chapters[0]?._id || null : null, durationMinutes: e.target.value === "mock" ? form.durationMinutes || 30 : form.durationMinutes })}><option value="quiz">Chapter quiz</option><option value="mock">Timed course mock test</option></select></label><label className="block text-sm font-semibold">Time limit in minutes {form.kind === "quiz" && "(optional)"}<input className="input-field mt-2" type="number" min={1} max={180} step={1} required={form.kind === "mock"} value={form.durationMinutes ?? ""} onChange={(e) => setForm({ ...form, durationMinutes: e.target.value === "" ? null : Number(e.target.value) })} /></label></div>
       {form.kind === "quiz" && <label className="block text-sm font-semibold">Chapter<select aria-label="Chapter" className="input-field mt-2" required value={form.module || ""} onChange={(e) => setForm({ ...form, module: e.target.value })}><option value="">Choose a chapter</option>{chapters.map((m) => <option key={m._id} value={m._id}>{m.title}</option>)}</select></label>}
       <p className="text-sm leading-6 text-muted">1 point per correct answer; 0 for incorrect or unanswered questions. No negative marking. Maximum 40 questions, 2–6 options each and a 180-minute timer.</p>
-      {!form.questions.length && <p className="rounded-xl border border-line p-4 text-sm">No questions authored yet. Add your own reviewed questions below.</p>}
-      {form.questions.map((q, i) => <AssessmentQuestionFields key={i} id={`assessment-question-${i + 1}`} question={q} number={i + 1} onChange={(next) => updateQuestion(i, next)} onRemove={async () => { if (await decide({ title: "Remove this question?", body: "The saved assessment changes only after you save or publish. Existing attempts retain their questions.", confirmLabel: "Remove question", destructive: true })) setForm((f) => ({ ...f, questions: f.questions.filter((_, n) => n !== i) })); }} />)}
-      <button className="btn-secondary" type="button" disabled={form.questions.length >= 40} onClick={() => setForm({ ...form, questions: [...form.questions, blankQuestion()] })}>Add question</button>
+      {!form.questions.length && <p className="rounded-xl border border-line p-4 text-sm">No questions yet. Use Import or Add question above.</p>}
+      {form.questions.map((q, i) => {
+        const fields = <AssessmentQuestionFields id={`assessment-question-${i + 1}`} question={q} number={i + 1} onChange={(next) => updateQuestion(i, next)} onRemove={() => setForm((f) => ({ ...f, questions: f.questions.filter((_, n) => n !== i) }))} />;
+        return q.importReview ? <details key={i} aria-label={`Imported question ${i + 1}`} className="rounded-xl border border-line p-4" open={Boolean(publicationErrors([q]).length)}><summary className="cursor-pointer"><span className="font-semibold">Question {i + 1}</span><span className="ml-2 break-words">{q.prompt || "Question text needed"}</span><span className="mt-2 block text-sm text-muted">{Number.isInteger(q.correctIndex) ? `Answer: Option ${q.correctIndex + 1}` : "Correct answer needed"} · Expand to edit</span></summary><div className="mt-4">{fields}</div></details> : <div key={i}>{fields}</div>;
+      })}
     </fieldset>
-    <button className="btn-secondary mt-5" type="button" disabled={busy || importOpen} onClick={() => { setValidationErrors([]); setError(""); setImportOpen(true); }}>Import PDF, Excel or CSV</button>
-    {importOpen && <Suspense fallback={<p role="status" className="mt-4">Loading question importer…</p>}><QuestionImport existingCount={form.questions.length} onClose={() => setImportOpen(false)} onApply={(questions, mode) => { setForm((f) => ({ ...f, questions: mode === "replace" ? questions : [...f.questions, ...questions] })); setImportOpen(false); setError(""); }} /></Suspense>}
-    {form.questions.some((q) => q.importReview && !q.importReview.checked) && <p className="mt-4 text-sm leading-6">Imported questions need review before publishing. Complete each question and check its review box; Save draft retains your progress.</p>}
+
     {error && <p role="alert" className="mt-5 text-red-700 dark:text-red-300">{error}</p>}
-    {busy && <p role="status" className="mt-5">Saving assessment…</p>}
-    <div className="mt-6 flex flex-wrap gap-3"><button className="btn-secondary" type="button" disabled={busy || importOpen} onClick={() => save("draft")}>Save draft</button><button className="btn-primary" disabled={busy || importOpen}>Publish {form.kind === "mock" ? "mock test" : "quiz"}</button><button className="btn-secondary" type="button" disabled={busy || importOpen} onClick={cancel}>{assessment ? "Back to tests" : "Cancel"}</button></div>
+
     {assessment?.status === "published" && <p className="mt-3 text-sm leading-6 text-muted">Saving as a draft stops new attempts until you publish again.</p>}
   </form>;
 }
@@ -65,7 +84,7 @@ function CourseAssessmentAuthor({ id }) {
     try { const [c, a] = await Promise.all([axiosInstance.get(`/courses/mine/${id}`, { signal }), axiosInstance.get(`/courses/${id}/assessments/manage`, { signal })]); if (signal?.aborted) return; setCourse(c.data.data.course); setChapters(c.data.data.modules); setAssessments(a.data.data.assessments); setError(""); } catch (e) { if (e.code !== "ERR_CANCELED") { setError(errorMessage(e)); if ([401, 403, 404, 410].includes(e.response?.status)) { setCourse(null); setChapters([]); setAssessments([]); setSelected(null); } } }
   }, [id]);
   useEffect(() => { const controller = new AbortController(); setCourse(null); setChapters([]); setAssessments([]); setSelected(null); setNotice(""); setError(""); load(controller.signal); return () => controller.abort(); }, [load]);
-  return <section><Link className="text-sm text-primary-700 underline dark:text-primary-300" to={`/instructor/courses/${id}/curriculum`}>← Course curriculum</Link><div className="mt-5"><WorkspaceIntro eyebrow="Apne sawaal, apni practice" title="Mock tests and quizzes">{course?.title || "Chapter quizzes and timed course mock tests"}</WorkspaceIntro></div>
+  return <section><Link className="btn-secondary gap-2" to={`/instructor/courses/${id}/curriculum`}><ArrowLeft size={18} aria-hidden="true" />Back to curriculum</Link><div className="mt-5"><WorkspaceIntro eyebrow="Apne sawaal, apni practice" title="Mock tests and quizzes">{course?.title || "Chapter quizzes and timed course mock tests"}</WorkspaceIntro></div>
     {error && <div role="alert" className="card mt-5"><p className="text-red-700 dark:text-red-300">{error}</p><button className="btn-secondary mt-3" onClick={() => load()}>Reload assessments</button></div>}
     {notice && <p role="status" className="mt-5">{notice}</p>}
     {!course && !error && <p role="status" className="mt-5">Loading assessments…</p>}

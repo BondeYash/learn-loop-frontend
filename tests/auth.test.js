@@ -45,3 +45,12 @@ test("blocked browser storage does not break successful cookie login", async () 
   assert.equal(action.type, "auth/login/fulfilled");
   assert.deepEqual(store.getState().auth.user, user);
 });
+test("concurrent session requests share one check without hiding an authenticated workspace", async () => {
+  const store = signedIn(); let resolve; let calls = 0;
+  api.get = () => { calls++; return new Promise((done) => { resolve = done; }); };
+  const first = store.dispatch(fetchCurrentUser({ background: true }));
+  const second = await store.dispatch(fetchCurrentUser({ background: true }));
+  assert.equal(calls, 1); assert.equal(second.meta.condition, true);
+  assert.deepEqual(store.getState().auth.user, user); assert.equal(store.getState().auth.status, "authenticated");
+  resolve({ data: { data: { user } } }); await first;
+});

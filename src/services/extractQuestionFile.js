@@ -93,7 +93,7 @@ async function pdf(bytes, { signal, language, forceOcr, progress }) {
     }
     check(signal);
     if (pages.reduce((sum, p) => sum + p.text.length, 0) > IMPORT_LIMITS.text) throw new Error("Extracted PDF text exceeds the safe limit. Split the document.");
-    return { kind: "pages", pages, warnings: ["PDF/OCR detection is best effort. Review every question against the original PDF; diagrams and complex columns may require manual transcription."] };
+    return { kind: "pages", pages, warnings: ["You can edit extracted text below if a scanned page, diagram or complex layout needs correction."] };
   } catch (error) {
     if (signal.aborted) throw cancelled();
     if (/password|Password|Worker was destroyed/.test(error.message || "")) throw new Error("Password-protected PDFs are unsupported. Export an unlocked copy locally, then retry.");
