@@ -1,0 +1,25 @@
+.exam-updates { margin-top: 72px; scroll-margin-top: 28px; }
+.exam-updates-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.exam-updates-heading .section-context { display: flex; align-items: center; gap: 9px; }
+.exam-updates h2 { font-size: clamp(1.9rem,3vw,2.5rem); font-weight: 700; line-height: 1.2; }
+.exam-updates-intro { margin-top: 10px; font-size: .85rem; line-height: 1.8; color: var(--muted); }
+.exam-updates-freshness { display: grid; gap: 5px; font-size: .72rem; line-height: 1.7; color: var(--muted); }
+.exam-updates-freshness time { font-weight: 600; color: var(--ink); }
+.exam-updates-source { max-width: 800px; margin-top: 18px; font-size: .74rem; line-height: 1.85; color: var(--muted); }
+.exam-update-search { display: block; max-width: 440px; margin-top: 25px; font-size: .78rem; font-weight: 600; }
+.exam-update-search > div { display: flex; align-items: center; gap: 10px; margin-top: 8px; border: 1px solid var(--control); border-radius: 12px; padding-left: 14px; background: var(--panel); }
+.exam-update-search svg { flex-shrink: 0; color: var(--muted); }
+.exam-update-search input { width: 100%; min-width: 0; min-height: 48px; padding: 10px 12px 10px 0; border-radius: 12px; background: transparent; color: var(--ink); font-size: .82rem; font-weight: 400; }
+.exam-update-search input::placeholder { color: var(--muted); }
+.exam-update-count { margin-top: 18px; margin-bottom: 10px; font-size: .73rem; color: var(--muted); }
+.exam-notice-list { display: grid; column-gap: 32px; border-top: 1px solid var(--line); }
+.exam-notice-list li { min-width: 0; padding-block: 22px; border-bottom: 1px solid var(--line); }
+.exam-notice-date { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; font-size: .69rem; line-height: 1.8; color: var(--muted); }
+.exam-notice-list h3 { font-family: 'Plus Jakarta Sans','Noto Sans Devanagari',sans-serif; font-size: .89rem; font-weight: 600; line-height: 1.8; }
+.exam-notice-list h3 a { display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 44px; }
+.exam-notice-list h3 a:hover { color: var(--primary); text-decoration: underline; text-underline-offset: 4px; }
+.exam-notice-list h3 svg { flex-shrink: 0; color: var(--primary); }
+.exam-updates-more { margin-top: 24px; }
+.exam-updates-state, .exam-updates-stale { margin-top: 22px; border: 1px solid var(--line); padding: 20px; border-radius: 14px; background: var(--soft); font-size: .8rem; line-height: 1.9; color: var(--muted); }
+@media(min-width: 768px) { .exam-notice-list { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width: 639px) { .exam-updates { margin-top: 48px; } .exam-updates-heading { gap: 14px; } .exam-updates-freshness { display: flex; flex-wrap: wrap; column-gap: 8px; } }

@@ -2,6 +2,7 @@ import { ArrowUpRight, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import StudentMotivation from "./StudentMotivation.jsx";
+import ExamNotifications from "./ExamNotifications.jsx";
 
 const questions = [
   ["How do I get access to a paid course?", "Sign in with a student account, choose your course and pay with Razorpay. Once payment is verified, the course opens automatically. You do not need to wait for instructor approval."],
@@ -13,6 +14,7 @@ const questions = [
 export default function LandingSections() {
   const user = useSelector(state => state.auth.user);
   return <>
+    <ExamNotifications />
     <StudentMotivation />
     <section id="how-it-works" className="landing-guide" aria-labelledby="learning-guide-title">
       <div className="landing-section-heading"><div><p className="section-context">From your first step to your next chapter</p><h2 id="learning-guide-title">Taiyaari ko simple rakhein.</h2></div><p>A clear way to choose, join and learn.</p></div>

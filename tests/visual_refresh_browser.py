@@ -24,6 +24,7 @@ def run_checks(browser, media, evidence):
             if not u.path.startswith('/api/'):r.continue_();return
             state['calls'].append((req.method,u.path))
             if harness.fulfill_optional_acquisition(r, u): return
+            if harness.fulfill_optional_exam_notifications(r, u): return
             if u.path=='/api/auth/me':
                 if role is None:r.fulfill(status=401,json={'message':'Sign in required'});return
                 answer={'user':{'id':harness.STUDENT_ID,'name':'Fixture learner' if role=='student' else 'Fixture teacher' if role=='instructor' else 'Fixture admin','role':role,'email':'fixture@example.invalid','status':'active','mustChangePassword':False}}

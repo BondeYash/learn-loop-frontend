@@ -39,6 +39,15 @@ def fulfill_learning_place(route, url):
     return False
 
 
+def fulfill_optional_exam_notifications(route, url):
+    # Dedicated coverage is in exam_notifications_browser.py. Other suites run
+    # with the optional feed disabled and never contact Parse.
+    if url.path == "/api/public/exam-notifications" and route.request.method == "GET":
+        route.fulfill(json={"data": {"enabled": False, "status": "disabled", "notices": [], "updatedAt": None}})
+        return True
+    return False
+
+
 def fulfill_optional_acquisition(route, url):
     if url.path.startswith("/api/public/courses/") and url.path.endswith("/acquisition") and route.request.method == "GET":
         route.fulfill(json={"data":{"measurementEnabled":False,"interestEnabled":False,"policyUrl":"","retentionDays":90}})
