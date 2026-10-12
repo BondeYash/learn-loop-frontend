@@ -110,7 +110,7 @@ def run_checks(browser, _media, evidence):
         page.get_by_label("Description", exact=True).fill("Synthetic local course")
         page.get_by_role("button", name="Continue to content").click()
         expect(page.get_by_role("heading", name="Lessons", exact=True)).to_be_visible()
-        harness.check(page.get_by_role("button", name="Publish course", exact=True).count() == 0, "new course flow has no mandatory draft/publish action")
+        harness.check(page.get_by_role("button", name="Publish course", exact=True).count() == 1, "new course offers publication while assignment can also publish")
         page.get_by_label("Student email addresses").fill("learner@example.invalid")
         page.get_by_role("button", name="Assign course", exact=True).click()
         expect(page.get_by_role("alert")).to_contain_text("Add a lesson or PDF note")
@@ -129,7 +129,7 @@ def run_checks(browser, _media, evidence):
         expect(page.get_by_role("heading", name="handout-2.pdf")).to_be_visible()
         page.get_by_label("Student email addresses").fill("learner@example.invalid")
         page.get_by_role("button", name="Assign course", exact=True).click()
-        expect(page.get_by_text("Visible to all students. Videos open for assigned students", exact=False)).to_be_visible()
+        expect(page.get_by_text("Published · Free enrollment follows your course settings", exact=False)).to_be_visible()
         harness.check(len(state["notes"]) == 2, "course creation, multiple PDFs and assignment complete without publication step")
         for theme in ["light", "dark"]:
             if theme == "dark": page.get_by_role("button", name="Switch to dark theme").click()

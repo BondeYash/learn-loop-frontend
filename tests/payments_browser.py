@@ -64,6 +64,31 @@ def run_checks(browser, media, evidence):
         assert control('stats')=={'orders':4,'enrollments':3,'creates':4};assert control('assignments')=={'assignments':0}
         assert control('missingEnrollment',student='third')['updated'];third.goto(harness.ORIGIN+'/student');expect(third.get_by_role('link',name='Continue learning',exact=True)).to_have_count(2);assert control('stats')['enrollments']==3
         third.get_by_role('link',name='Continue learning',exact=True).first.click();expect(third.get_by_text('Synthetic learning unlocked after verified payment.',exact=True)).to_be_visible()
+        # Explicit instructor grants bypass checkout only for selected students.
+        free,_=page_for('complimentary','dark');expect(free.get_by_role('link',name='Pay to unlock',exact=True)).to_be_visible()
+        owner.reload();owner.get_by_role('link',name='Grant free access',exact=True).click()
+        owner.get_by_label('Student email addresses').fill(meta['users']['complimentary']['email'])
+        owner.get_by_role('button',name='Grant free access',exact=True).click()
+        expect(owner.get_by_text('Free access granted',exact=True)).to_be_visible();fits(owner,'grant controls and student email fit 320px')
+        section=owner.locator('#assign-students');section.screenshot(path=str(evidence/'instructor-free-access-mobile.png'))
+        free.reload();expect(free.get_by_text('Free access granted',exact=True)).to_be_visible();expect(free.get_by_role('link',name='Pay to unlock',exact=True)).to_have_count(0)
+        free.goto(harness.ORIGIN+f'/catalog/{meta["slug"]}');expect(free.get_by_role('button',name='Open course',exact=True)).to_be_visible()
+        expect(free.get_by_text('Your instructor has granted you free access.',exact=False)).to_be_visible();expect(free.get_by_role('button',name='Continue to test checkout')).to_have_count(0)
+        free.screenshot(path=str(evidence/'student-free-access-dark-mobile.png'),full_page=True)
+        free.get_by_role('button',name='Open course',exact=True).click();expect(free.get_by_text('Synthetic learning unlocked after verified payment.',exact=True)).to_be_visible();free.reload();expect(free.get_by_text('Synthetic learning unlocked after verified payment.',exact=True)).to_be_visible()
+        assert control('stats')=={'orders':4,'enrollments':4,'creates':4}
+        first.goto(harness.ORIGIN+f'/courses/{cid}');expect(first.get_by_role('button',name='Continue to test checkout')).to_be_visible()
+        # Existing assignments get their own grant action; refund records stay truthful.
+        assert control('assign',student='student')['updated'];owner.reload()
+        existing=owner.locator('#assign-students li').filter(has_text=meta['users']['student']['email']);existing.get_by_role('button',name='Grant free access',exact=True).click();expect(existing.get_by_text('Free access granted',exact=True)).to_be_visible()
+        first.reload();expect(first.get_by_text('Synthetic learning unlocked after verified payment.',exact=True)).to_be_visible()
+        row=owner.locator('#assign-students li').filter(has_text=meta['users']['complimentary']['email']);row.get_by_role('button',name='Remove assignment',exact=True).click()
+        dialog=owner.get_by_role('dialog');expect(dialog).to_contain_text('and its free access');dialog.get_by_role('button',name='Remove assignment',exact=True).click();expect(row).to_have_count(0)
+        free.reload();expect(free.get_by_role('button',name='Continue to test checkout')).to_be_visible();expect(free.get_by_text('Synthetic learning unlocked after verified payment.',exact=True)).to_have_count(0)
+        second.goto(harness.ORIGIN+f'/courses/{cid}');expect(second.get_by_text('Synthetic learning unlocked after verified payment.',exact=True)).to_be_visible()
+        assert control('stats')=={'orders':4,'enrollments':4,'creates':4}
+        assert not any(role=='complimentary' and path=='/api/payments/checkout' for role,method,path in calls)
+        harness.check(True,'selected free grant, existing assignment upgrade, no checkout, independent paid access and revocation work through real instructor/student UI')
         assert control('unpublish')['updated'];third.reload();expect(third.get_by_role('alert')).to_be_visible();assert third.get_by_text('Synthetic learning unlocked after verified payment.',exact=True).count()==0
         harness.check(True,'real cookie/API/Mongo: instructor publishes without assignments, private course purchase, dashboard recovery, cancellation + retry, captured access, failed retry, lost response, signed webhook, partial/full refund and ownership scope')
         harness.check(not errors,'no runtime errors: '+str(errors));harness.check(not unexpected,'external provider traffic blocked: '+str(unexpected))

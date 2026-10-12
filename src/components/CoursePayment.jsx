@@ -39,9 +39,9 @@ export default function CoursePayment({ courseId, onAccess, publicEnrollment = f
   return <section className={compact ? "mt-5" : "card mt-5 max-w-2xl"} aria-label="Course enrollment and payment">
     <p className="eyebrow">Join this course</p>
     {!compact && <h1 className="mt-3 text-2xl font-semibold">{quote?.title || "Course access"}</h1>}
-    <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{isFree ? needsEnrollment ? "Enroll to open this free course’s lessons and PDF notes." : "Your free course is ready. Open it to start learning." : quote?.paid ? "Your payment is verified. Open the course to continue learning." : "Pay once to enroll automatically and unlock this course’s lessons, PDF notes and published mock tests. No instructor approval is needed."}</p>
+    <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{quote?.waived ? "Your instructor has granted you free access. Open the course to start learning without payment." : isFree ? needsEnrollment ? "Enroll to open this free course’s lessons and PDF notes." : "Your free course is ready. Open it to start learning." : quote?.paid ? "Your payment is verified. Open the course to continue learning." : "Pay once to enroll automatically and unlock this course’s lessons, PDF notes and published mock tests. No instructor approval is needed."}</p>
     {needsPayment && validMode && <p className="mt-3 text-sm font-semibold text-primary-700 dark:text-primary-200">{quote.testMode ? "Razorpay test mode — no real money is charged." : "Live payment — your payment method will be charged in INR."}</p>}
-    {quote && <p className="mt-5 text-3xl font-semibold">{isFree ? "Free" : formatInr(quote.amountMinor)}</p>}
+    {quote && <p className="mt-5 text-3xl font-semibold">{quote.waived ? "Free access" : isFree ? "Free" : formatInr(quote.amountMinor)}</p>}
     {quote?.pendingOrderId && quote.currentAmountMinor !== undefined && quote.currentAmountMinor !== quote.amountMinor && <p className="mt-3 text-sm">This earlier payment attempt keeps its original price. The current course price is {formatInr(quote.currentAmountMinor)}.</p>}
     {error && <p role="alert" className="mt-4 text-sm text-red-700 dark:text-red-300">{error}</p>}
     {!data && !error && <p role="status" className="mt-4 text-sm">Loading course price…</p>}
