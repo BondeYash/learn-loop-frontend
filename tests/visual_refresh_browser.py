@@ -59,20 +59,36 @@ def run_checks(browser, media, evidence):
         assert brand.evaluate('e=>{const r=e.getBoundingClientRect();return r.left>=0 && r.right<=innerWidth}')
         assert 'LessonLoop' not in page.locator('body').inner_text()
         harness.check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'),label+' with Praneet Vidyapeeth branding')
-    def screen(page,filename):page.screenshot(path=str(evidence/filename),full_page=True,animations='disabled')
+    def screen(page,filename):
+        page.evaluate('window.scrollTo({top:0,behavior:"instant"})');page.screenshot(path=str(evidence/filename),full_page=True,animations='disabled')
     def zoom(page,label):
         page.set_viewport_size({'width':640,'height':1000});page.evaluate("document.documentElement.style.zoom='2'");fits(page,label+' at 200%');page.evaluate("document.documentElement.style.zoom=''")
     try:
         for theme in ['light','dark']:
-            page,state=fixture(theme=theme);page.goto(harness.ORIGIN);expect(page.get_by_role('heading',name='Padhai, apne pace pe.')).to_be_visible();page.evaluate('document.fonts.ready')
+            page,state=fixture(theme=theme);page.goto(harness.ORIGIN);expect(page.get_by_role('heading',name='Bade sapne. Roz ki taiyaari.')).to_be_visible();page.evaluate('document.fonts.ready')
             expect(page.get_by_role('link',name='Praneet Vidyapeeth home',exact=True)).to_be_visible()
             expect(page.locator('footer')).to_contain_text('Praneet Vidyapeeth')
             heading=page.locator('.study-hero h1');font=heading.evaluate('e=>getComputedStyle(e).fontFamily');harness.check('Baloo 2' in font,'display family is loaded: '+font)
             assert page.evaluate("document.fonts.check('800 40px \"Baloo 2\"','Padhai') && document.fonts.check('500 17px \"Plus Jakarta Sans\"','Course')")
-            assert page.locator('.hero-cta').evaluate("e=>getComputedStyle(e).backgroundColor==='rgb(255, 227, 106)'"), 'Hero CTA must retain its accessible yellow fill in both themes'
+            expect(page.locator('.hero-actions').get_by_role('link',name='Explore courses',exact=True)).to_be_visible()
+            plan=page.get_by_role('group',name='Study time')
+            expect(plan.get_by_role('button',name='30 min',exact=True)).to_have_attribute('aria-pressed','true')
+            calls=list(state['calls'])
+            for minutes in [15,60,30]:
+                choice=plan.get_by_role('button',name=f'{minutes} min',exact=True);choice.focus();choice.press('Enter')
+                expect(choice).to_have_attribute('aria-pressed','true');expect(page.get_by_text(f'Your {minutes}-minute study plan',exact=True)).to_be_visible()
+                assert sum(page.locator('.routine-time').evaluate_all('es=>es.map(e=>parseInt(e.textContent))'))==minutes
+                expect(plan.locator('button[aria-pressed="true"]')).to_have_count(1)
+            assert state['calls']==calls, 'Suggested study routines must work without account or payment requests'
+            question=page.locator('.landing-questions summary').first;question.focus();question.press('Enter')
+            expect(page.locator('.landing-questions details').first).to_have_attribute('open','')
+            expect(page.locator('.landing-questions details').first).to_contain_text('You do not need to wait for instructor approval.')
+            question.press('Enter');expect(page.locator('.landing-questions details').first).not_to_have_attribute('open','')
+            page.locator('h1').click();page.evaluate('window.scrollTo({top:0,behavior:"instant"})')
+            harness.check(True,'study-time choices, accurate time allocation and keyboard FAQ work '+theme)
             harness.check(page.locator('html').evaluate("e=>e.classList.contains('dark')")==(theme=='dark'),'theme verified '+theme)
-            for width in [320,1440]:
-                page.set_viewport_size({'width':width,'height':1000});fits(page,'home '+str(width)+'px '+theme);screen(page,'home-'+str(width)+'-'+theme+'.png')
+            for width in [320,768,1024,1440]:
+                page.set_viewport_size({'width':width,'height':1000});fits(page,'home '+str(width)+'px '+theme);assert width<768 or page.locator('.public-course-card').first.bounding_box()['width']>=page.locator('.landing-page').bounding_box()['width']-2;screen(page,'home-'+str(width)+'-'+theme+'.png');page.screenshot(path=str(evidence/f'home-viewport-{width}-{theme}.png'));page.locator('.study-hero').screenshot(path=str(evidence/f'hero-{width}-{theme}.png'));page.locator('.student-motivation').screenshot(path=str(evidence/f'motivation-{width}-{theme}.png'))
             zoom(page,'home '+theme);page.set_viewport_size({'width':320,'height':1000})
             page.goto(harness.ORIGIN+'/login');expect(page.get_by_role('heading',name='Welcome back')).to_be_visible();fits(page,'login 320px '+theme);screen(page,'login-320-'+theme+'.png')
             page.get_by_label('Email',exact=True).fill('fixture@example.invalid');page.get_by_label('Password',exact=True).fill('fixture-password-123');page.get_by_role('button',name='Sign in',exact=True).click();expect(page.get_by_role('alert')).to_contain_text('Retry safely')

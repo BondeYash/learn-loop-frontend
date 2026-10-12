@@ -1,4 +1,4 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, BookOpen, FileText, ClipboardCheck } from "lucide-react";
 import "./StudyHero.css";
 export function StudyArtwork() {
   return <svg className="study-artwork" viewBox="0 0 360 330" aria-hidden="true">
@@ -11,5 +11,19 @@ export function StudyArtwork() {
   </svg>;
 }
 export default function StudyHero() {
-  return <section className="study-hero" aria-labelledby="study-hero-title"><div className="study-hero-copy"><p className="hero-kicker">Government-exam learning</p><h1 id="study-hero-title">Padhai,<br /><span>apne pace pe.</span></h1><p className="hero-description">Bade goals ke liye, ek chhota step. Course ka syllabus, language aur price dekhein — phir available sample try karein.</p><a className="btn-primary hero-cta gap-2" href="#catalog">Courses dekhein<ArrowUpRight size={18} /></a></div><div className="study-hero-art"><span className="hero-sticker">Chalo, shuru karein.</span><StudyArtwork /></div></section>;
+  return <>
+    <section className="study-hero" aria-labelledby="study-hero-title">
+      <div className="study-hero-copy">
+        <p className="hero-subject"><span aria-hidden="true" />Government exam preparation</p>
+        <h1 id="study-hero-title">Bade sapne.<br />Roz ki taiyaari.</h1>
+        <p className="hero-description">Apne goals ko ek clear next step dein. Learn a concept, revise your notes and practise at your pace — with your course materials in one place.</p>
+        <div className="hero-actions"><a className="btn-primary gap-2" href="#catalog">Explore courses<ArrowUpRight size={18} aria-hidden="true" /></a><a className="hero-plan-link" href="#study-plan">Plan today’s study</a></div>
+        <p className="hero-reassurance">Syllabus, language aur price pehle dekhein. Phir apna course chunein.</p>
+      </div>
+      <div className="study-hero-art"><div className="hero-art-caption"><span className="hero-art-dot" aria-hidden="true" />A little progress, every day.</div><StudyArtwork /><p className="hero-art-footer">Aapki mehnat. Aapka agla kadam.</p></div>
+    </section>
+    <div className="learning-toolkit" aria-label="Ways to learn">
+      {[[BookOpen, "Concepts, made clearer", "Video and text lessons"], [FileText, "Revision, within reach", "Course PDF notes"], [ClipboardCheck, "Practice with purpose", "Quizzes and mock tests"]].map(([Icon, title, copy]) => <div className="toolkit-item" key={title}><span className="toolkit-icon"><Icon size={23} strokeWidth={1.7} aria-hidden="true" /></span><div><p>{title}</p><span>{copy}</span></div></div>)}
+    </div>
+  </>;
 }
