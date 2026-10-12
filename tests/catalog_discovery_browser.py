@@ -1,4 +1,4 @@
-"""All published metadata is rendered without offering private/unready enrollment.
+"""All published metadata is rendered with free private courses and paid self-service enrollment.
 API responses are synthetic; unexpected learning/payment calls are blocked.
 """
 from copy import deepcopy
@@ -12,7 +12,7 @@ def run_checks(browser, _media, evidence):
     errors, unexpected, contexts = [], [], []
     inventory = []
     for n in range(14):
-        item = {**deepcopy(CARD), "id": f"507f1f77bcf86cd799439{n + 100:03d}", "slug": f"synthetic-course-{n}", "title": ["Assignment course", "Legacy course", "Preparing public course"][n] if n < 3 else f"Synthetic course {n}", "hasPreview": False, "availability": {"enrollment": "assignment" if n < 2 else "public", "ready": n != 2}}
+        item = {**deepcopy(CARD), "id": f"507f1f77bcf86cd799439{n + 100:03d}", "slug": f"synthetic-course-{n}", "title": ["Assignment course", "Legacy course", "Preparing public course"][n] if n < 3 else f"Synthetic course {n}", "hasPreview": False, "amountMinor": 0 if n < 3 else 12050, "availability": {"enrollment": "assignment" if n < 2 else "public" if n == 2 else "purchase", "ready": n != 2}}
         inventory.append(item)
 
     def fixture(theme, student=False):
@@ -67,6 +67,10 @@ def run_checks(browser, _media, evidence):
                 expect(page.get_by_text("Page 2 of 2", exact=True)).to_be_visible()
                 page.get_by_role("button", name="Previous", exact=True).click()
                 expect(page.locator(".public-course-card")).to_have_count(12)
+            page.goto(harness.ORIGIN + "/catalog/" + inventory[3]["slug"])
+            expect(page.get_by_role("link", name="Sign in to buy", exact=True)).to_be_visible()
+            expect(page.get_by_role("heading", name="Instructor assignment required")).to_have_count(0)
+            page.goto(harness.ORIGIN + "/catalog")
             page.get_by_label("Search courses", exact=True).fill("Legacy")
             page.get_by_role("button", name="Search", exact=True).click()
             expect(page.locator(".public-course-card")).to_have_count(1)

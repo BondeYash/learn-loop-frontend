@@ -35,11 +35,11 @@ export default function CoursePayment({ courseId, onAccess, publicEnrollment = f
   const validMode = typeof quote?.testMode === "boolean" && data?.readiness?.testMode === quote.testMode;
   const needsPayment = quote?.requiresPayment === true;
   const isFree = quote?.amountMinor === 0 && !needsPayment;
-  const needsEnrollment = isPublic && quote?.enrollmentRequired === true;
+  const needsEnrollment = isFree && isPublic && quote?.enrollmentRequired === true;
   return <section className={compact ? "mt-5" : "card mt-5 max-w-2xl"} aria-label="Course enrollment and payment">
-    <p className="eyebrow">{isPublic ? "Join this course" : "Assigned course"}</p>
+    <p className="eyebrow">Join this course</p>
     {!compact && <h1 className="mt-3 text-2xl font-semibold">{quote?.title || "Course access"}</h1>}
-    <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{isPublic ? isFree ? "Enroll to open this free course’s lessons and PDF notes." : quote?.paid ? "Your payment is verified. Open the course to continue learning." : "Verified payment enrolls your account and opens this course’s learning materials." : isFree ? "Your instructor has made this course free. You can open its lessons and PDF notes without payment." : quote?.paid ? "Your payment is verified. You can open the course while it is assigned to your account." : "Your instructor has assigned this course. Payment is required before you can open its lessons and PDF notes."}</p>
+    <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{isFree ? needsEnrollment ? "Enroll to open this free course’s lessons and PDF notes." : "Your free course is ready. Open it to start learning." : quote?.paid ? "Your payment is verified. Open the course to continue learning." : "Pay once to enroll automatically and unlock this course’s lessons, PDF notes and published mock tests. No instructor approval is needed."}</p>
     {needsPayment && validMode && <p className="mt-3 text-sm font-semibold text-primary-700 dark:text-primary-200">{quote.testMode ? "Razorpay test mode — no real money is charged." : "Live payment — your payment method will be charged in INR."}</p>}
     {quote && <p className="mt-5 text-3xl font-semibold">{isFree ? "Free" : formatInr(quote.amountMinor)}</p>}
     {quote?.pendingOrderId && quote.currentAmountMinor !== undefined && quote.currentAmountMinor !== quote.amountMinor && <p className="mt-3 text-sm">This earlier payment attempt keeps its original price. The current course price is {formatInr(quote.currentAmountMinor)}.</p>}

@@ -1,12 +1,12 @@
 # LessonLoop frontend
 
-The React app for LessonLoop, a government-exam learning platform. Visitors can explore explicitly public courses and selected samples; instructors manage courses, MP4/text lessons, PDF notes and assignments; students open their available materials and track completion. Responsive light/dark screens use a colorful study style, self-hosted typography and romanized Hinglish in expressive headings. See [public discovery, owner controls and rollout](docs/public-discovery.md) and [visual design, accessibility and verification](docs/visual-refresh.md).
+The React app for LessonLoop, a government-exam learning platform. Visitors can explore all published courses and selected public samples; instructors manage courses, MP4/text lessons, PDF notes and assignments; students open their available materials and track completion. Responsive light/dark screens use a colorful study style, self-hosted typography and romanized Hinglish in expressive headings. See [public discovery, owner controls and rollout](docs/public-discovery.md) and [visual design, accessibility and verification](docs/visual-refresh.md).
 
 Admin-only instructor provisioning, access controls, user/course/video oversight and recoverable course archive/restore are now included. Read [admin management and rollout](docs/admin-management.md). Existing instructors/data are preserved; the operator runs the protected first-admin setup.
 
 Backend: [BondeYash/learn-loop-backend](https://github.com/BondeYash/learn-loop-backend).
 
-Course creation is now details → lessons/PDF notes → assign students, without a separate required publish step. Owners/admins can add private course handouts; assigned students can open/download ready PDFs. Dashboards/course screens include accessible light/dark loading skeletons and real retry/empty states. See [current flow, limits, rollout and checks](docs/course-notes.md).
+Course creation is details → lessons/PDF notes → Publish course. Students can buy any published paid course and get learning access automatically, without assignment. Free courses use public enrollment or instructor assignments. Owners/admins can add private handouts; enrolled students can open/download ready PDFs. Dashboards/course screens include accessible light/dark loading skeletons and real retry/empty states. See [current flow, limits, rollout and checks](docs/course-notes.md).
 
 Reference-led dashboard/course design, private course thumbnail upload/replace and accessible in-app dialogs are included. See [behavior, verification and rollout](docs/design-and-thumbnails.md).
 

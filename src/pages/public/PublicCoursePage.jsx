@@ -24,13 +24,13 @@ function Items({ title, items, empty }) { return <section className="card"><h2 c
 function EnrollmentOptions({ course, user, slug, onAccess }) {
   const availability = course.availability;
   if (user && user.role !== "student") return <Link className="btn-secondary mt-4 w-full" to={`/courses/${course.id}`}>Preview course</Link>;
-  if (!availability || !availability.ready || availability.enrollment !== "public") return <div className="mt-5">
+  if (!availability || !availability.ready || !["public", "purchase"].includes(availability.enrollment)) return <div className="mt-5">
     <h2 className="font-semibold">{!availability ? "Check course availability" : !availability.ready ? "Materials being prepared" : "Instructor assignment required"}</h2>
-    <p className="mt-2 text-sm leading-6 text-muted">{!availability ? "Enrollment availability is being updated. Sign in to check your course access." : !availability.ready ? "Learning materials are being prepared. Self-enrollment is unavailable for now." : "Enrollment is managed by the instructor. Sign in to check an existing assignment. Paid learning materials still require verified payment."}</p>
+    <p className="mt-2 text-sm leading-6 text-muted">{!availability ? "Enrollment availability is being updated. Sign in to check your course access." : !availability.ready ? "Learning materials are being prepared. Self-enrollment is unavailable for now." : "Enrollment for this free course is managed by the instructor. Sign in to check an existing assignment."}</p>
     {user ? <Link className="btn-secondary mt-4 w-full" to={`/courses/${course.id}`}>Check my course access</Link> : <Link className="btn-secondary mt-4 w-full" to={authLink("/login", `/catalog/${slug}`)}>Sign in to check access</Link>}
   </div>;
   if (user) return <CoursePayment compact publicEnrollment courseId={course.id} onAccess={onAccess} />;
-  return <div className="mt-5"><p className="text-sm leading-6 text-muted">Sign in or create a student account to enroll. Paid courses open after verified payment.</p><Link className="btn-secondary mt-4 w-full" to={authLink("/login", `/catalog/${slug}`)}>Sign in to enroll</Link><Link className="mt-4 block text-center text-sm text-primary-700 underline dark:text-primary-300" to={authLink("/register", `/catalog/${slug}`)}>Create account</Link></div>;
+  return <div className="mt-5"><p className="text-sm leading-6 text-muted">Sign in or create a student account to enroll. Payment gives you automatic access to paid courses.</p><Link className="btn-secondary mt-4 w-full" to={authLink("/login", `/catalog/${slug}`)}>{availability.enrollment === "purchase" ? "Sign in to buy" : "Sign in to enroll"}</Link><Link className="mt-4 block text-center text-sm text-primary-700 underline dark:text-primary-300" to={authLink("/register", `/catalog/${slug}`)}>Create account</Link></div>;
 }
 export default function PublicCoursePage() {
   const { slug } = useParams(); const navigate = useNavigate(); const user = useSelector((state) => state.auth.user);
@@ -42,7 +42,7 @@ export default function PublicCoursePage() {
   }, [slug, retry]);
   if (error) return <div className="card" role="alert"><h1 className="text-2xl font-semibold">{missing ? "Course unavailable" : "Unable to load this course"}</h1><p className="mt-3">{error}</p><div className="mt-5 flex flex-wrap gap-3"><Link className="btn-secondary" to="/catalog">Browse courses</Link>{!missing && <button className="btn-primary" onClick={() => setRetry((value) => value + 1)}>Retry course</button>}</div></div>;
   if (!data) return <p role="status" className="card">Loading course…</p>;
-  const { course, modules } = data, sample = course.availability?.enrollment === "public" ? modules.flatMap((module) => module.lessons).find((lesson) => lesson.preview) : null;
+  const { course, modules } = data, sample = modules.flatMap((module) => module.lessons).find((lesson) => lesson.preview);
   const policies = Object.entries(course.policies || {}).filter(([, value]) => value);
   return <><Link className="text-sm text-primary-700 dark:text-primary-300" to="/catalog">← Browse courses</Link><div className="mt-6 grid items-start gap-7 lg:grid-cols-[1.6fr_1fr]">
     <div className="public-course-intro min-w-0"><p className="text-xs font-semibold uppercase tracking-widest text-primary-700 dark:text-primary-300">{course.examName || course.category?.name || "Government-exam learning"}</p><h1 className="mt-3 break-words text-3xl font-semibold sm:text-5xl">{course.title}</h1>{course.summary && <p className="mt-4 text-lg leading-7 text-slate-600 dark:text-slate-300">{course.summary}</p>}<div className="mt-5 flex flex-wrap gap-3 text-sm"><span>{course.language || "Teaching language not provided"}</span><span className="capitalize">{course.level}</span><strong>{coursePrice(course.amountMinor)}</strong>{course.instructorName && <span>With {course.instructorName}</span>}</div>

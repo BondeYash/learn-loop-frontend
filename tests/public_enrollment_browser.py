@@ -15,7 +15,7 @@ def run_checks(browser, media, evidence):
         context.add_init_script(f"if (!localStorage.getItem('lessonloop_theme')) localStorage.setItem('lessonloop_theme','{theme}')")
         page=context.new_page();page.on("pageerror",lambda error:errors.append(str(error)))
         state={"role":role,"enrolled":False,"paid":False,"status":"pending","enrolls":0,"checkouts":0,"held":[],"hold":False,"private":False,"history_error":False,"hold_instructors":False,"instructor_requests":[]}
-        detail=deepcopy(DETAIL);detail['course']['amountMinor']=12050 if paid else 0
+        detail=deepcopy(DETAIL);detail['course']['amountMinor']=12050 if paid else 0;detail['course']['availability']['enrollment']='purchase' if paid else 'public'
         course={"_id":COURSE_ID,"slug":CARD['slug'],"title":CARD['title'],"description":"Synthetic public course","price":120.5 if paid else 0,"visibility":"public","isPublished":True,"language":"Hindi","category":{"_id":CATEGORY_ID,"name":"Computer qualification"}}
         order={"id":"507f1f77bcf86cd799439033","courseId":COURSE_ID,"title":CARD['title'],"amountMinor":12050,"status":"pending","provider":"razorpay","currency":"inr","testMode":True,"createdAt":"2026-10-01T10:00:00Z"}
         user=lambda:{"id":harness.STUDENT_ID,"name":"Fixture learner","email":"student@fixture.invalid","role":state['role'],"status":"active"}
@@ -40,7 +40,7 @@ def run_checks(browser, media, evidence):
                 if state['hold_instructors']:state['instructor_requests'].append((r,answer));return
             elif u.path=='/api/categories':answer={'categories':[course['category']]}
             elif u.path=='/api/payments/courses/'+COURSE_ID+'/quote':
-                answer={'quote':{'courseId':COURSE_ID,'title':CARD['title'],'amountMinor':12050 if paid else 0,'currency':'inr','testMode':True,'paid':state['paid'],'requiresPayment':paid and not state['paid'],'enrollmentType':'public','enrolled':state['enrolled'],'enrollmentRequired':not state['enrolled']},'readiness':{'configured':paid,'testMode':True}}
+                answer={'quote':{'courseId':COURSE_ID,'title':CARD['title'],'amountMinor':12050 if paid else 0,'currency':'inr','testMode':True,'paid':state['paid'],'requiresPayment':paid and not state['paid'],'enrollmentType':'purchase' if paid else 'public','enrolled':state['enrolled'],'enrollmentRequired':not state['enrolled']},'readiness':{'configured':paid,'testMode':True}}
             elif u.path=='/api/courses/'+COURSE_ID+'/enroll':
                 assert req.method=='POST' and req.post_data_json=={'quotedAmountMinor':12050 if paid else 0};state['enrolls']+=1
                 if state['hold']:state['held'].append(r);return
@@ -51,10 +51,10 @@ def run_checks(browser, media, evidence):
                 if state['history_error']:r.fulfill(status=503,json={'message':'Synthetic history unavailable'});return
                 answer={'orders':[dict(order,status=state['status'])],'page':1,'limit':20,'total':1,'testMode':True}
             elif u.path.startswith('/api/payments/orders/507f1f77bcf86cd799439033'):
-                answer={'order':dict(order,status=state['status'],canAccess=state['paid'] and state['enrolled'] and not state['private'])}
+                answer={'order':dict(order,status=state['status'],canAccess=state['paid'] and state['enrolled'])}
             elif u.path=='/api/courses/'+COURSE_ID:
                 c=dict(course,visibility='private' if state['private'] else 'public')
-                answer={'course':c,'access':{'assigned':False,'enrolled':state['enrolled'],'videos':state['enrolled'] and not state['private']},'modules':[{'_id':'module-fixture','title':'Lessons','lessons':[{'_id':'lesson-fixture','title':'Learning lesson','contentType':'text',**({'content':'Learning content after enrollment'} if state['enrolled'] and not state['private'] else {'locked':True})}]}]}
+                answer={'course':c,'access':{'assigned':False,'enrolled':state['enrolled'],'videos':state['enrolled'] and (not paid or state['paid']) and (paid or not state['private'])},'modules':[{'_id':'module-fixture','title':'Lessons','lessons':[{'_id':'lesson-fixture','title':'Learning lesson','contentType':'text',**({'content':'Learning content after enrollment'} if state['enrolled'] and (not paid or state['paid']) and (paid or not state['private']) else {'locked':True})}]}]}
             elif harness.fulfill_learning_place(r, u): return
             elif u.path.endswith('/progress'):answer={'progress':{'completedLessons':[],'percentage':0}}
             elif u.path.endswith('/notes'):answer={'notes':[]}
@@ -105,7 +105,7 @@ def run_checks(browser, media, evidence):
         page.goto(harness.ORIGIN+'/payments');expect(page.get_by_role('heading',name='Payment history')).to_be_visible();expect(page.get_by_role('link',name='View payment record')).to_be_visible();fits(page,'payment history fits 320px');page.get_by_role('link',name='View payment record').click()
         for status in ['refunded','partially_refunded','disputed','failed','expired']:
             state.update(paid=False,status=status);page.get_by_role('button',name='Check payment status').click();expect(page.get_by_role('link',name='Back to course',exact=True)).to_be_visible();assert not page.get_by_role('link',name='Open course',exact=True).count()
-        state.update(paid=True,status='paid',private=True);page.get_by_role('button',name='Check payment status').click();expect(page.get_by_text('Payment is verified. Check the course for current enrollment and availability.')).to_be_visible();page.get_by_role('link',name='Back to course',exact=True).click();expect(page.get_by_text('has not given your account access',exact=False)).to_be_visible();assert not page.get_by_text('Learning content after enrollment').count()
+        state.update(paid=True,status='paid',private=True);page.get_by_role('button',name='Check payment status').click();expect(page.get_by_role('link',name='Open course',exact=True)).to_be_visible();page.get_by_role('link',name='Open course',exact=True).click();expect(page.get_by_text('Learning content after enrollment')).to_be_visible()
         state['history_error']=True;page.goto(harness.ORIGIN+'/payments');expect(page.get_by_role('alert')).to_contain_text('Synthetic history unavailable');state['history_error']=False;page.get_by_role('button',name='Retry history').click();expect(page.get_by_role('link',name='View payment record')).to_be_visible()
         harness.check(not errors,'no runtime errors: '+str(errors));harness.check(not unexpected,'all requests isolated: '+str(unexpected))
     finally:

@@ -4,8 +4,8 @@ import { formatInr } from "../services/payments.js";
 import CategoryBadge from "./CategoryBadge.jsx";
 import CourseArtwork from "./CourseArtwork.jsx";
 export default function CourseCard({ course, management = false, status }) {
-  const needsEnrollment = !management && course.visibility === "public" && (course.access?.enrolled ?? course.access?.assigned) === false;
-  const needsInstructor = !management && course.visibility !== "public" && course.access?.assigned === false;
+  const needsEnrollment = !management && course.price === 0 && course.visibility === "public" && (course.access?.enrolled ?? course.access?.assigned) === false;
+  const needsInstructor = !management && !course.price && course.visibility !== "public" && (course.access?.enrolled ?? course.access?.assigned) === false;
   const resume = course.progress?.resume;
   const locked = !management && !needsInstructor && (course.payment?.required ?? course.price > 0);
   const paymentLabels = { required: "Payment required", pending: "Payment pending", failed: "Payment failed", expired: "Checkout expired", refunded: "Payment refunded", partially_refunded: "Payment needs review", disputed: "Payment disputed", reversed: "Payment reversed" };
