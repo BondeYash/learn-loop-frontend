@@ -1,9 +1,23 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import { API_ORIGIN, handleRequest } from "../worker/proxy.js";
 const FRONTEND = "https://lessonloop.example.invalid";
 const unusedAssets = { ASSETS: { fetch() { throw new Error("API must not fall through to SPA assets"); } } };
 const request = (path, options) => new Request(FRONTEND + path, options);
+
+test("Razorpay server webhooks preserve raw signed bytes and event headers through the domain proxy", async () => {
+  const body = '{ "entity": "event", "event":"payment.captured", "notes":"पढ़ाई" }\n';
+  const sign = text => crypto.createHmac("sha256", "synthetic-webhook-secret").update(text).digest("hex");
+  const response = await handleRequest(request("/api/payments/razorpay/webhook", { method: "POST", headers: { "Content-Type": "application/json", "X-Razorpay-Signature": sign(body), "X-Razorpay-Event-Id": "synthetic-event" }, body }), unusedAssets, async (url, init) => {
+    assert.equal(url, API_ORIGIN + "/api/payments/razorpay/webhook");
+    const received = await new Response(init.body).text();
+    assert.equal(received, body); assert.equal(init.headers.get("X-Razorpay-Signature"), sign(received));
+    assert.equal(init.headers.get("X-Razorpay-Event-Id"), "synthetic-event"); assert.equal(init.headers.get("Origin"), null);
+    return Response.json({ received: true });
+  });
+  assert.equal(response.status, 200); assert.match(response.headers.get("Cache-Control"), /no-store/);
+});
 
 test("SPA/deep links and API-looking asset paths use the assets binding, while /api and /api/* use the fixed upstream", async () => {
   for (const path of ["/", "/courses/lesson", "/assets/app.js", "/apiary", "/api-other"]) {

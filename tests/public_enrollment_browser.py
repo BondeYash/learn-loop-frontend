@@ -17,11 +17,12 @@ def run_checks(browser, media, evidence):
         state={"role":role,"enrolled":False,"paid":False,"status":"pending","enrolls":0,"checkouts":0,"held":[],"hold":False,"private":False,"history_error":False,"hold_instructors":False,"instructor_requests":[]}
         detail=deepcopy(DETAIL);detail['course']['amountMinor']=12050 if paid else 0
         course={"_id":COURSE_ID,"slug":CARD['slug'],"title":CARD['title'],"description":"Synthetic public course","price":120.5 if paid else 0,"visibility":"public","isPublished":True,"language":"Hindi","category":{"_id":CATEGORY_ID,"name":"Computer qualification"}}
-        order={"id":"record-fixture","courseId":COURSE_ID,"title":CARD['title'],"amountMinor":12050,"status":"pending","currency":"inr","testMode":True,"createdAt":"2026-10-01T10:00:00Z"}
+        order={"id":"507f1f77bcf86cd799439033","courseId":COURSE_ID,"title":CARD['title'],"amountMinor":12050,"status":"pending","provider":"razorpay","currency":"inr","testMode":True,"createdAt":"2026-10-01T10:00:00Z"}
         user=lambda:{"id":harness.STUDENT_ID,"name":"Fixture learner","email":"student@fixture.invalid","role":state['role'],"status":"active"}
         def route(r):
             req,u=r.request,urlparse(r.request.url)
-            if u.hostname=='checkout.stripe.com':r.fulfill(content_type='text/html',body='<h1>Synthetic Stripe checkout</h1>');return
+            if req.url=='https://checkout.razorpay.com/v1/checkout.js':r.fulfill(content_type='application/javascript',body=(harness.ROOT/'tests/razorpayWidgetFixture.js').read_text());return
+            if u.path=='/__fixture__/capture':r.fulfill(json={'razorpay_order_id':'order_synthetic','razorpay_payment_id':'pay_synthetic','razorpay_signature':'0'*64});return
             if u.netloc!='127.0.0.1:5186':unexpected.append(req.url);r.abort();return
             if not u.path.startswith('/api/'):r.continue_();return
             if harness.fulfill_optional_acquisition(r, u): return
@@ -45,11 +46,11 @@ def run_checks(browser, media, evidence):
                 if state['hold']:state['held'].append(r);return
                 state['enrolled']=True;answer={'access':True,'courseId':COURSE_ID}
             elif u.path=='/api/payments/checkout':
-                state['checkouts']+=1;assert req.post_data_json=={'courseId':COURSE_ID,'quotedAmountMinor':12050};assert req.headers['idempotency-key'];answer={'order':order,'url':'https://checkout.stripe.com/c/pay/cs_test_fixture'}
+                state['checkouts']+=1;assert req.post_data_json=={'courseId':COURSE_ID,'quotedAmountMinor':12050};assert req.headers['idempotency-key'];answer={'order':order,'checkout':{'provider':'razorpay','keyId':'rzp_test_synthetic','orderId':'order_synthetic','amount':12050,'currency':'INR','name':'Synthetic enrollment'}}
             elif u.path=='/api/payments/orders':
                 if state['history_error']:r.fulfill(status=503,json={'message':'Synthetic history unavailable'});return
                 answer={'orders':[dict(order,status=state['status'])],'page':1,'limit':20,'total':1,'testMode':True}
-            elif u.path.startswith('/api/payments/orders/record-fixture'):
+            elif u.path.startswith('/api/payments/orders/507f1f77bcf86cd799439033'):
                 answer={'order':dict(order,status=state['status'],canAccess=state['paid'] and state['enrolled'] and not state['private'])}
             elif u.path=='/api/courses/'+COURSE_ID:
                 c=dict(course,visibility='private' if state['private'] else 'public')
@@ -98,9 +99,9 @@ def run_checks(browser, media, evidence):
             harness.check(page.locator('html').evaluate("e=>e.classList.contains('dark')")==(theme=='dark'),'active theme verified '+theme)
         login,lstate=fixture();login.goto(harness.ORIGIN+'/login?returnTo=%2Fcatalog%2F'+CARD['slug']);login.get_by_label('Email',exact=True).fill('student@fixture.invalid');login.get_by_label('Password',exact=True).fill('fixture-password-123');login.get_by_role('button',name='Sign in',exact=True).click();expect(login.get_by_role('button',name='Enroll for free')).to_be_visible();assert lstate['enrolls']==0
         harness.check(True,'login retains selected public course without automatic enrollment')
-        page,state=fixture(paid=True,role='student');page.goto(harness.ORIGIN+'/catalog/'+CARD['slug']);expect(page.get_by_role('button',name='Continue to test checkout')).to_be_visible();page.get_by_role('button',name='Continue to test checkout').click();page.wait_for_url('https://checkout.stripe.com/**');assert state['enrolls']==0 and state['checkouts']==1
-        page.goto(harness.ORIGIN+'/payments/record-fixture?checkout=success');expect(page.get_by_role('heading',name='Awaiting payment verification')).to_be_visible();assert page.get_by_role('link',name='Open course',exact=True).count()==0
-        state.update(paid=True,enrolled=True,status='paid');page.get_by_role('button',name='Check payment status').click();expect(page.get_by_role('link',name='Open course',exact=True)).to_be_visible();expect(page.get_by_text('record-fixture',exact=True)).to_be_visible();page.get_by_role('link',name='Open course',exact=True).click();expect(page.get_by_text('Learning content after enrollment')).to_be_visible()
+        page,state=fixture(paid=True,role='student');page.goto(harness.ORIGIN+'/catalog/'+CARD['slug']);expect(page.get_by_role('button',name='Continue to test checkout')).to_be_visible();page.get_by_role('button',name='Continue to test checkout').click();page.get_by_role('button',name='Pay successfully').click();page.wait_for_url('**/payments/507f1f77bcf86cd799439033');assert state['enrolls']==0 and state['checkouts']==1
+        page.goto(harness.ORIGIN+'/payments/507f1f77bcf86cd799439033?checkout=success');expect(page.get_by_role('heading',name='Awaiting payment verification')).to_be_visible();assert page.get_by_role('link',name='Open course',exact=True).count()==0
+        state.update(paid=True,enrolled=True,status='paid');page.get_by_role('button',name='Check payment status').click();expect(page.get_by_role('link',name='Open course',exact=True)).to_be_visible();expect(page.get_by_text('507f1f77bcf86cd799439033',exact=True)).to_be_visible();page.get_by_role('link',name='Open course',exact=True).click();expect(page.get_by_text('Learning content after enrollment')).to_be_visible()
         page.goto(harness.ORIGIN+'/payments');expect(page.get_by_role('heading',name='Payment history')).to_be_visible();expect(page.get_by_role('link',name='View payment record')).to_be_visible();fits(page,'payment history fits 320px');page.get_by_role('link',name='View payment record').click()
         for status in ['refunded','partially_refunded','disputed','failed','expired']:
             state.update(paid=False,status=status);page.get_by_role('button',name='Check payment status').click();expect(page.get_by_role('link',name='Back to course',exact=True)).to_be_visible();assert not page.get_by_role('link',name='Open course',exact=True).count()

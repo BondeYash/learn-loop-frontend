@@ -14,8 +14,8 @@ from assessment_feedback_assertions import check_active_feedback_privacy
 
 def run_checks(browser, media, evidence):
     backend_dir=Path(os.environ['MOCK_TEST_BACKEND_DIR']).resolve()
-    env={k:v for k,v in os.environ.items() if k not in ['MONGO_URI','MONGO_DB_NAME','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET']}
-    env.update(NODE_ENV='test',CLIENT_URL=harness.ORIGIN,STRIPE_MODE='test',AUTH_RATE_LIMIT_MAX='100')
+    env={k:v for k,v in os.environ.items() if k not in ['MONGO_URI','MONGO_DB_NAME','RAZORPAY_KEY_ID','RAZORPAY_KEY_SECRET','RAZORPAY_WEBHOOK_SECRET']}
+    env.update(NODE_ENV='test',CLIENT_URL=harness.ORIGIN,RAZORPAY_MODE='test',AUTH_RATE_LIMIT_MAX='100')
     fixture=subprocess.Popen(['node','tests/mockBrowserFixture.js'],cwd=backend_dir,env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,bufsize=1)
     contexts=[];errors=[];unexpected=[];calls=[];active_payloads=[]
     def read():

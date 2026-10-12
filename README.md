@@ -38,6 +38,8 @@ The earlier video verification used a retained synthetic MP4: after the exact lo
 
 Live evidence and limits: [local verification record](docs/verification.md).
 
+Razorpay checkout, live/test configuration and webhook setup: [payment integration](docs/razorpay-payments.md).
+
 Current public enrollment and payment-record behavior: [Stage 2 documentation](docs/public-enrollment.md).
 
 Instructor/admin-authored chapter quizzes and timed mock tests, learner attempts/results and tagged practice history: [assessment behavior and verification](docs/assessments.md). Assessment content starts empty until an instructor authors it.
