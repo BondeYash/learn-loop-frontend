@@ -1,5 +1,5 @@
-import { handleRequest } from "./proxy.js";
+import { handlePublicRequest } from "./publicCache.js";
 
 export default {
-  fetch(request, env) { return handleRequest(request, env); },
+  fetch(request, env, ctx) { return handlePublicRequest(request, env, ctx); },
 };

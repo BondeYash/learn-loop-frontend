@@ -2,6 +2,7 @@
 Run with the same Chrome/Playwright prerequisites as student_player_browser.py.
 """
 from copy import deepcopy
+from datetime import datetime, timezone, timedelta
 from urllib.parse import urlparse
 from playwright.sync_api import expect
 import student_player_browser as harness
@@ -11,13 +12,13 @@ from public_catalog_browser import CARD
 def run_checks(browser, _media, evidence):
     contexts, errors, unexpected = [], [], []
     notices = [{"id": str(n), "title": f"{name} — Synthetic recruitment notice {n + 1}", "url": f"https://sarkariresult.com.cm/fixture-{n}/", "publishedOn": "2026-10-12"} for n, name in enumerate(["SSC", "Railway", "Banking", "UPSC", "State PSC", "Teaching", "Defence", "Computer qualification"])]
-    feed = {"enabled": True, "status": "ready", "notices": notices, "updatedAt": "2026-10-12T10:00:00Z", "source": {"name": "SarkariResult.com.cm", "via": "Parse", "url": "https://sarkariresult.com.cm/"}}
+    feed = {"enabled": True, "status": "ready", "notices": notices, "updatedAt": datetime.now(timezone.utc).isoformat(), "source": {"name": "SarkariResult.com.cm", "via": "Parse", "url": "https://sarkariresult.com.cm/"}}
 
     def fixture(theme="light", mode="ready"):
         ctx = browser.new_context(viewport={"width": 1440, "height": 1000}, service_workers="block")
         contexts.append(ctx); ctx.add_init_script(f"localStorage.setItem('lessonloop_theme','{theme}')")
         state = {"mode": mode, "calls": [], "held": []}
-        page = ctx.new_page(); page.on("pageerror", lambda error: errors.append(str(error)))
+        page = ctx.new_page(); page.clock.install(); page.on("pageerror", lambda error: errors.append(str(error)))
 
         def route(r):
             u = urlparse(r.request.url)
@@ -32,7 +33,7 @@ def run_checks(browser, _media, evidence):
                 if state["mode"] == "error": r.fulfill(status=503, json={"message": "Private diagnostics must not appear"}); return
                 if state["mode"] == "disabled": data.update(enabled=False, status="disabled", notices=[], updatedAt=None)
                 if state["mode"] == "empty": data["notices"] = []
-                if state["mode"] == "stale": data.update(status="stale", updatedAt="2026-10-10T10:00:00Z")
+                if state["mode"] == "stale": data.update(status="stale", updatedAt=(datetime.now(timezone.utc)-timedelta(days=2)).isoformat())
                 if state["mode"] == "unavailable": data.update(status="unavailable", notices=[])
                 if state["mode"] == "unsafe":
                     data["notices"] = [{**notices[0], "title": "<img src=x onerror=alert(1)> Plain text"}, {**notices[1], "url": "javascript:alert(1)"}, {**notices[2], "url": "https://evil.invalid/"}]
@@ -79,17 +80,17 @@ def run_checks(browser, _media, evidence):
             page.screenshot(path=str(evidence / f"home-exam-updates-{theme}.png"), full_page=True, animations="disabled")
             harness.check(True, "keyboard filter/expansion and safe links, without extra network requests: " + theme)
 
-        for mode, copy in [("empty", "No new notifications"), ("stale", "Showing saved updates"), ("unavailable", "Exam updates are temporarily unavailable"), ("error", "Exam updates are temporarily unavailable")]:
+        for mode, copy in [("empty", "No new notifications"), ("stale", "Last updated"), ("unavailable", "Gathering the latest updates"), ("error", "Gathering the latest updates")]:
             page, state = fixture(mode=mode); page.goto(harness.ORIGIN)
             section = page.get_by_role("region", name="Latest exam notifications")
             expect(section).to_contain_text(copy)
-            expect(page.get_by_role("heading", name=CARD["title"])).to_be_visible()
+            expect(page.locator("#catalog").get_by_role("heading", name=CARD["title"])).to_be_visible()
             assert "Private diagnostics" not in section.inner_text()
             if mode == "stale":
                 expect(section.locator(".exam-notice-list li")).to_have_count(6)
-                expect(section.locator(".exam-updates-freshness time")).to_have_attribute("datetime", "2026-10-10T10:00:00Z")
+                assert section.locator(".exam-updates-freshness time").get_attribute("datetime")
             if mode in ["unavailable", "error"]:
-                state["mode"] = "ready"; section.get_by_role("button", name="Retry updates").click()
+                state["mode"] = "ready"; page.clock.fast_forward(61000)
                 expect(section.locator(".exam-notice-list li")).to_have_count(6)
             harness.check(True, "feed state and course isolation: " + mode)
 
@@ -101,8 +102,8 @@ def run_checks(browser, _media, evidence):
         expect(page.locator(".exam-notice-list img")).to_have_count(0)
         expect(page.locator(".exam-notice-list")).to_contain_text("<img src=x onerror=alert(1)>")
         page, state = fixture(mode="pending"); page.goto(harness.ORIGIN)
-        expect(page.get_by_text("Loading exam updates…")).to_be_visible()
-        expect(page.get_by_role("heading", name=CARD["title"])).to_be_visible()
+        expect(page.locator(".exam-feed-skeleton[aria-busy=true]")).to_be_visible()
+        expect(page.locator("#catalog").get_by_role("heading", name=CARD["title"])).to_be_visible()
         state["mode"] = "ready"
         for route in state["held"]: route.fulfill(json={"data": feed})
         expect(page.locator(".exam-notice-list li")).to_have_count(6)

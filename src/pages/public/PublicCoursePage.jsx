@@ -7,7 +7,7 @@ import { authLink } from "../../services/authReturn.js";
 import CourseArtwork from "../../components/CourseArtwork.jsx";
 import PrivateVideoPlayer from "../../components/PrivateVideoPlayer.jsx";
 import axiosInstance, { errorMessage } from "../../services/axiosInstance.js";
-import { coursePrice } from "./PublicCatalogPage.jsx";
+import { coursePrice } from "../../services/coursePrice.js";
 const CourseAcquisition = lazy(() => import("../../components/CourseAcquisition.jsx"));
 
 function Sample({ course, lesson }) {

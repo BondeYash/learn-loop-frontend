@@ -31,3 +31,20 @@
 @media(max-width: 639px) { .study-hero-art { max-width: 260px; padding-top: 20px; } .study-hero { gap: 34px; } .hero-art-caption, .hero-art-footer { font-size: .65rem; } .hero-reassurance { max-width: none; } }
 @media(max-width: 400px) { .study-hero { padding: 26px 20px; border-radius: 22px; } .study-hero h1 { font-size: 2.65rem; } .hero-subject { font-size: .72rem; } .study-hero-art { max-width: 230px; } }
 @media(forced-colors: active) { .study-hero-art { background-image: none; box-shadow: none; border-color: CanvasText; } .hero-subject > span, .hero-art-dot { background: CanvasText; } .toolkit-icon { border: 1px solid CanvasText; } }
+.hero-course-offer { position: relative; min-width: 0; width: 100%; max-width: 430px; margin-inline: auto; padding: clamp(23px,3vw,36px); border: 1px solid var(--control); border-radius: 23px; background: var(--panel); box-shadow: 8px 8px 0 var(--hero-shadow); }
+.hero-course-offer::before { content: ''; display: block; position: absolute; top: -1px; left: 28px; right: 28px; height: 5px; border-radius: 0 0 8px 8px; background: var(--primary); }
+.hero-offer-label { display: flex; align-items: center; gap: 8px; color: var(--primary); font-size: .73rem; font-weight: 700; line-height: 1.7; }
+.hero-offer-label svg { flex-shrink: 0; }
+.hero-course-offer h2 { margin-top: 20px; font-size: clamp(1.45rem,2.4vw,1.9rem); line-height: 1.25; font-weight: 700; overflow-wrap: anywhere; }
+.hero-offer-description { margin-top: 12px; color: var(--muted); font-size: .77rem; line-height: 1.8; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.hero-offer-price { margin-top: 24px; padding: 21px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.hero-offer-price > span { color: var(--muted); font-size: .72rem; }
+.hero-offer-price strong { display: block; margin-top: 2px; color: var(--primary); font-size: clamp(3.3rem,5vw,4.4rem); font-weight: 800; line-height: 1.15; letter-spacing: -.04em; overflow-wrap: anywhere; }
+.hero-offer-price p { margin-top: 8px; font-size: .71rem; color: var(--muted); line-height: 1.8; }
+.hero-offer-benefits { display: grid; gap: 13px; margin: 23px 0; }
+.hero-offer-benefits li { display: flex; gap: 9px; font-size: .75rem; line-height: 1.6; }
+.hero-offer-benefits svg { flex-shrink: 0; margin-top: 1px; color: var(--primary); }
+.hero-offer-checkout { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 14px; font-size: .7rem; color: var(--muted); }
+.hero-offer-skeleton { min-height: 435px; }
+@media(max-width: 639px) { .study-hero { padding: 25px 20px; } .hero-course-offer { box-shadow: 5px 5px 0 var(--hero-shadow); } .hero-subject { font-size: .69rem; } }
+@media(forced-colors: active) { .hero-course-offer { border: 1px solid CanvasText; box-shadow: none; } }
