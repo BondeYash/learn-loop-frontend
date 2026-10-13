@@ -27,3 +27,13 @@ PLAYER_EVIDENCE_DIR=/tmp/student-player-evidence CHROME_BIN=/usr/bin/google-chro
 ```
 
 Checks cover student controls/context-menu scope; partial learner identity and pointer/accessibility behavior; actual playback; automatic ticket renewal while playing and paused; seeking near expiry; keyboard fullscreen and watermark containment; 320px/390px layout; denied renewal and manual retry; unavailable/rejected fullscreen fallback; and instructor/admin preview playback. This does not verify real signed URLs, production permission enforcement, audio, captions, assistive technology or every mobile/browser combination. Existing backend authorization is unchanged. Test actual supported devices and the hosted workflow separately before release.
+
+## Student playback controls, 2026-10-13
+
+The shared player provides visible play/pause, backward/forward buttons, speeds from 0.25× to 3×, and a 5/10/30-second skip selector (10 seconds by default). Speed and skip interval are stored as device preferences in `learnloop:video-controls:v1`; no account details or signed URLs are stored. Corrupt or blocked storage falls back to normal speed and a 10-second skip. The native timeline, volume, picture-in-picture and supported casting controls remain available. Instructor, admin and public sample previews use the same controls.
+
+Keyboard shortcuts apply only within the player: Space/K toggles playback, J/L uses the chosen skip interval, left/right arrows move five seconds, </> steps through speeds, M mutes, and F toggles supported container fullscreen. The native video retains its own Space and arrow handling so its built-in sliders and buttons remain keyboard accessible; custom Space/arrow shortcuts apply to the wrapper. Inputs and focused buttons retain their normal keyboard behavior. A collapsible guide describes these shortcuts, and skip/rate changes have brief accessible feedback. Controls wrap for small screens and remain inside container fullscreen.
+
+Ticket renewal preserves the latest position and playing/paused state, selected speed, volume, mute and video keyboard focus. Skipping continues to use the existing learning-place reporting and never marks a lesson complete automatically. No backend entitlement, payment, progress or signed-ticket API contract changes are required.
+
+`tests/student_player_browser.py` also checks actual media rates, skip boundaries, keyboard scope, native/custom control synchronization, preferences across lessons/reloads, automatic renewal, both themes at 320/390/1280px, 200% zoom and landscape fullscreen. `tests/videoPreferences.test.js` covers corrupt and denied storage.

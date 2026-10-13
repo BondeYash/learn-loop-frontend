@@ -132,6 +132,10 @@ def run_checks(browser, media, evidence):
         video_page.goto(ORIGIN + "/catalog/synthetic-ccc"); video_page.get_by_role("button", name="Open sample lesson").click()
         video_page.wait_for_function("document.querySelector('video')?.readyState >= 2")
         harness.check(video_state["preview_calls"] >= 1 and video_page.locator(".private-player-watermark").count() == 0, "public sample uses selected preview endpoint without learner identity")
+        video_page.get_by_role("combobox", name="Playback speed").select_option("1.5")
+        video_page.get_by_role("button", name="Forward 10 seconds", exact=True).click()
+        video_page.wait_for_function("document.querySelector('video').playbackRate === 1.5 && Math.abs(document.querySelector('video').currentTime - 10) < .1")
+        harness.check(True, "public samples support speed and skip controls before sign-in")
         video_state["fail_preview"] = True
         video_page.evaluate("window.fixtureNow = Date.now; Date.now = () => window.fixtureNow() + 290000; document.querySelector('video').currentTime = 3")
         expect(video_page.get_by_role("alert")).to_contain_text("sample lesson is unavailable")
