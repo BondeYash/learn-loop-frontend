@@ -1,6 +1,6 @@
 import { ActionLink, Button } from "../components/Action.jsx";
 import { useCallback, useEffect, useState } from "react";
-import { BookOpen, CheckCircle2, Compass, RefreshCw, ArrowRight } from "lucide-react";
+import { BookOpen, CheckCircle2, Compass, Sparkles, RefreshCw, ArrowRight } from "lucide-react";
 import LoadingSkeleton from "../components/LoadingSkeleton.jsx";
 import WorkspaceIntro from "../components/WorkspaceIntro.jsx";
 import CourseCard from "../components/CourseCard.jsx";
@@ -19,6 +19,7 @@ export default function StudentDashboardPage() {
   const stats = [{ label: "Courses on the platform", value: courses.length, icon: BookOpen }, { label: "Ready to continue", value: ready, icon: Compass }, { label: "Completed courses", value: completed, icon: CheckCircle2 }];
   return <section><WorkspaceIntro eyebrow="Aapki learning space" title={<>Aaj kya padhein, {user?.name?.split(" ")[0] || "student"}?</>}><p>Jahan chhoda tha, wahin se. Choose a paid course, pay with Razorpay and start learning immediately after verification. Your purchased courses open without instructor approval.</p></WorkspaceIntro>
     <div className="mt-7 grid gap-3 sm:grid-cols-3">{stats.map(({ label, value, icon: Icon }) => <div className="card stat-card !p-5" key={label}><div className="stat-heading"><p className="stat-label">{label}</p><Icon size={19} aria-hidden="true" /></div><p className="stat-value">{loading || error ? "—" : value}</p></div>)}</div>
+    <section className="student-doubt-entry"><span className="student-doubt-icon"><Sparkles size={26} aria-hidden="true" /></span><div><p className="eyebrow">Meet your study companion</p><h2>Ek doubt? Clear karte hain.</h2><p>Ask Doubt Dost in Hindi, English or Hinglish. Learn from your course PDFs, with sources you can check.</p></div><ActionLink className="btn-primary" to="/doubts">Open Doubt Dost<ArrowRight size={17} aria-hidden="true" /></ActionLink></section>
     {recent && <section className="card mt-7"><p className="eyebrow">Jahan chhoda tha</p><h2 className="mt-3 break-words text-xl font-semibold">{recent.title}</h2><p className="mt-3 text-sm text-muted">{recent.progress.completedCount}/{recent.progress.totalLessons} lessons marked complete</p><ActionLink className="btn-primary mt-4" to={`/courses/${recent._id}?lesson=${encodeURIComponent(recent.progress.resume.lesson)}`}>Continue learning</ActionLink></section>}
     <div className="learning-workspace mt-7"><div className="min-w-0"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-semibold">All courses</h2><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Open a course to view its details and check enrollment or payment.</p></div><Button className="btn-secondary gap-2" onClick={load} disabled={loading}><RefreshCw size={15} />{loading ? "Refreshing…" : "Refresh courses"}</Button></div>
     {loading && !error && <LoadingSkeleton label="Loading your courses…" />}{error && <p className="card mt-5 text-red-700 dark:text-red-300" role="alert">{error}</p>}

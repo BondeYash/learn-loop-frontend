@@ -42,3 +42,9 @@
   .notification-icon, .notification-copy strong { color: CanvasText; }
   .notification-close:focus-visible { outline-color: Highlight; }
 }
+/* Persistent mobile enrollment actions and the chat composer stay reachable. */
+@media(max-width:639px) {
+  body:has(.course-payment-primary) .lessonloop-toasts.Toastify__toast-container,
+  body:has(.public-enroll-action) .lessonloop-toasts.Toastify__toast-container { bottom: max(84px, calc(env(safe-area-inset-bottom) + 72px)); }
+}
+body:has(.app-shell--chat) .lessonloop-toasts.Toastify__toast-container { top: max(12px, env(safe-area-inset-top)); bottom: auto; }

@@ -270,3 +270,25 @@ input[type=file]::file-selector-button { background: var(--lime); color: #18221f
 
 .input-field, .btn-secondary { border-color: var(--control); }
 @media(min-width:901px) { .workspace-footer .settings-link { display:none; } }
+
+.student-doubt-entry { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; padding: 24px 0; margin-top: 28px; border-block: 1px solid var(--line); }
+.student-doubt-entry > div { flex: 1 1 280px; min-width: 0; }
+.student-doubt-entry h2 { margin-top: 7px; font-size: 1.35rem; }
+.student-doubt-entry div > p:last-child { margin-top: 9px; font-size: .8rem; line-height: 1.8; color: var(--muted); max-width: 620px; }
+.student-doubt-icon { display: grid; place-items: center; flex-shrink: 0; width: 58px; height: 58px; background: var(--lime); color: #18221f; border-radius: 18px; }
+@media(max-width:640px) { .student-doubt-entry .btn-primary, .student-doubt-entry .btn-secondary { width: 100%; } }
+
+.public-course-grid { display: grid; grid-template-columns: minmax(0,1fr); grid-template-areas: "intro" "enroll" "body"; align-items: start; gap: 22px; margin-top: 24px; }
+.public-course-grid .public-course-intro { grid-area: intro; }
+.public-course-body { grid-area: body; }
+.public-course-grid .public-enrollment-panel { grid-area: enroll; scroll-margin-top: 20px; }
+@media(min-width:1024px) { .public-course-grid { grid-template-columns: minmax(0,1.6fr) minmax(0,1fr); grid-template-areas: "intro enroll" "body enroll"; gap: 0 28px; } }
+@media(max-width:639px) { .public-course-grid .public-enrollment-panel > .course-art { aspect-ratio: 3 / 1; max-height: 130px; } .course-payment-actions { flex-direction: column; align-items: stretch; } .course-payment-actions > button, .course-payment-actions > a { width: 100%; } .course-payment { scroll-margin-top: 16px; } }
+
+.course-payment-mobile-price { display: none; }
+@media(max-width:639px) {
+  .course-payment-actions > .course-payment-primary, .public-enrollment-panel .public-enroll-action { position: fixed; z-index: 45; left: 16px; right: 16px; bottom: max(12px, env(safe-area-inset-bottom)); width: calc(100% - 32px); margin: 0; min-height: 52px; border: 2px solid var(--primary); background: var(--primary); color: var(--on-primary); box-shadow: 0 0 0 8px var(--page), 0 -5px 24px #0002; }
+  .course-payment-mobile-price { display: inline; margin-left: auto; padding-left: 8px; font-weight: 800; }
+  .public-content:has(.public-enroll-action), .public-content:has(.course-payment-primary), .workspace-content:has(.course-payment-primary) { padding-bottom: 90px; }
+  .workspace-shell:has(.course-payment-primary) .workspace-footer, .public-shell:has(.public-enroll-action) .public-footer, .public-shell:has(.course-payment-primary) .public-footer { padding-bottom: 90px; }
+}

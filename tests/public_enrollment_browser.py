@@ -99,7 +99,18 @@ def run_checks(browser, media, evidence):
             harness.check(page.locator('html').evaluate("e=>e.classList.contains('dark')")==(theme=='dark'),'active theme verified '+theme)
         login,lstate=fixture();login.goto(harness.ORIGIN+'/login?returnTo=%2Fcatalog%2F'+CARD['slug']);login.get_by_label('Email',exact=True).fill('student@fixture.invalid');login.get_by_label('Password',exact=True).fill('fixture-password-123');login.get_by_role('button',name='Sign in',exact=True).click();expect(login.get_by_role('button',name='Enroll for free')).to_be_visible();assert lstate['enrolls']==0
         harness.check(True,'login retains selected public course without automatic enrollment')
-        page,state=fixture(paid=True,role='student');page.goto(harness.ORIGIN+'/catalog/'+CARD['slug']);expect(page.get_by_role('button',name='Continue to test checkout')).to_be_visible();page.get_by_role('button',name='Continue to test checkout').click();page.get_by_role('button',name='Pay successfully').click();page.wait_for_url('**/payments/507f1f77bcf86cd799439033');assert state['enrolls']==0 and state['checkouts']==1
+        guest,_=fixture(paid=True);guest.goto(harness.ORIGIN+'/catalog/'+CARD['slug'])
+        expect(guest.get_by_role('link',name='Sign in to buy',exact=True)).to_be_visible()
+        assert guest.get_by_role('link',name='Sign in to buy',exact=True).evaluate('e=>{const r=e.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight}'), 'signed-out mobile enrollment stays in view'
+        page,state=fixture(paid=True,role='student');page.goto(harness.ORIGIN+'/catalog/'+CARD['slug']);expect(page.get_by_role('button',name='Continue to test checkout')).to_be_visible()
+        for width in [320,390,640,768,1024,1440]:
+            page.set_viewport_size({'width':width,'height':900});page.evaluate('scrollTo({top:0,behavior:"instant"})');fits(page,'paid course enrollment '+str(width))
+            if width<640:
+                button=page.get_by_role('button',name='Continue to test checkout',exact=True)
+                assert button.evaluate('e=>{const r=e.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest("button")===e}'), 'mobile payment button is visible and clickable before scrolling'
+                assert page.locator('.public-enrollment-panel').bounding_box()['y']<page.locator('.public-course-body').bounding_box()['y'], 'mobile enrollment appears before the long curriculum'
+                page.screenshot(path=str(evidence/f'public-paid-checkout-{width}.png'),full_page=True)
+        page.set_viewport_size({'width':320,'height':900});page.get_by_role('button',name='Continue to test checkout').click();page.get_by_role('button',name='Pay successfully').click();page.wait_for_url('**/payments/507f1f77bcf86cd799439033');assert state['enrolls']==0 and state['checkouts']==1
         page.goto(harness.ORIGIN+'/payments/507f1f77bcf86cd799439033?checkout=success');expect(page.get_by_role('heading',name='Awaiting payment verification')).to_be_visible();assert page.get_by_role('link',name='Open course',exact=True).count()==0
         state.update(paid=True,enrolled=True,status='paid');page.get_by_role('button',name='Check payment status').click();expect(page.get_by_role('link',name='Open course',exact=True)).to_be_visible();expect(page.get_by_text('507f1f77bcf86cd799439033',exact=True)).to_be_visible();page.get_by_role('link',name='Open course',exact=True).click();expect(page.get_by_text('Learning content after enrollment')).to_be_visible()
         page.goto(harness.ORIGIN+'/payments');expect(page.get_by_role('heading',name='Payment history')).to_be_visible();expect(page.get_by_role('link',name='View payment record')).to_be_visible();fits(page,'payment history fits 320px');page.get_by_role('link',name='View payment record').click()

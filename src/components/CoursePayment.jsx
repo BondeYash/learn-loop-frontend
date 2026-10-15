@@ -37,7 +37,7 @@ export default function CoursePayment({ courseId, onAccess, publicEnrollment = f
   const needsPayment = quote?.requiresPayment === true;
   const isFree = quote?.amountMinor === 0 && !needsPayment;
   const needsEnrollment = isFree && isPublic && quote?.enrollmentRequired === true;
-  return <section className={compact ? "mt-5" : "card mt-5 max-w-2xl"} aria-label="Course enrollment and payment">
+  return <section className={compact ? "course-payment course-payment--compact mt-5" : "course-payment card mt-5 max-w-2xl"} aria-label="Course enrollment and payment">
     <p className="eyebrow">Join this course</p>
     {!compact && <h1 className="mt-3 text-2xl font-semibold">{quote?.title || "Course access"}</h1>}
     <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{quote?.waived ? "Your instructor has granted you free access. Open the course to start learning without payment." : isFree ? needsEnrollment ? "Enroll to open this free course’s lessons and PDF notes." : "Your free course is ready. Open it to start learning." : quote?.paid ? "Your payment is verified. Open the course to continue learning." : "Pay once to enroll automatically and unlock this course’s lessons, PDF notes and published mock tests. No instructor approval is needed."}</p>
@@ -47,8 +47,9 @@ export default function CoursePayment({ courseId, onAccess, publicEnrollment = f
     {error && <p role="alert" className="mt-4 text-sm text-red-700 dark:text-red-300">{error}</p>}
     {!data && !error && <p role="status" className="mt-4 text-sm">Loading course price…</p>}
     {needsPayment && (!data.readiness?.configured || !validMode) && <p className="mt-4 text-sm" role="status">Checkout is being configured. Please try again later.</p>}
-    <div className="mt-6 flex flex-wrap gap-3">
-      {quote && !needsPayment ? <Button className="btn-primary" disabled={busy} onClick={() => needsEnrollment ? execute(true) : onAccess()}>{busy ? "Enrolling…" : needsEnrollment && isFree ? "Enroll for free" : "Open course"}</Button> : data && <Button className="btn-primary" disabled={busy || !data.readiness?.configured || !validMode} onClick={() => execute(false)}>{busy ? "Processing payment…" : quote.testMode ? "Continue to test checkout" : "Pay with Razorpay"}</Button>}
+    <div className="course-payment-actions mt-6 flex flex-wrap gap-3">
+      {!data && !error && <Button className="btn-primary course-payment-primary" disabled>Loading checkout…</Button>}
+      {quote && !needsPayment ? <Button className="btn-primary course-payment-primary" disabled={busy} onClick={() => needsEnrollment ? execute(true) : onAccess()}>{busy ? "Enrolling…" : needsEnrollment && isFree ? "Enroll for free" : "Open course"}</Button> : data && <Button className="btn-primary course-payment-primary" disabled={busy || !data.readiness?.configured || !validMode} onClick={() => execute(false)}>{busy ? "Processing payment…" : quote.testMode ? "Continue to test checkout" : "Pay with Razorpay"}{needsPayment && !busy && <span aria-hidden="true" className="course-payment-mobile-price">{formatInr(quote.amountMinor)}</span>}</Button>}
       <Button className="btn-secondary" disabled={busy} onClick={load}>Refresh price</Button>
       {quote?.pendingOrderId && <ActionLink className="btn-secondary" to={`/payments/${quote.pendingOrderId}`}>Review payment attempt</ActionLink>}
     </div>

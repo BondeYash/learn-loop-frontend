@@ -50,7 +50,7 @@ export default function App() {
       <Route path="/dashboard" element={<DashboardIndex />} />
       <Route path="/courses" element={<CoursesPage />} /><Route path="/courses/:id" element={<CourseDetailsPage />} />
       <Route element={<ProtectedRoute roles={["student"]} />}><Route path="/courses/:id/support" element={<Suspense fallback={<p role="status">Loading learning support…</p>}><LearningSupportPage /></Suspense>} /></Route>
-      <Route element={<ProtectedRoute roles={["student"]} />}><Route path="/courses/:id/doubts" element={<Suspense fallback={<p role="status">Loading Doubt Dost…</p>}><DoubtDostPage /></Suspense>} /></Route>
+      <Route element={<ProtectedRoute roles={["student"]} />}><Route path="/doubts" element={<Suspense fallback={<p role="status">Loading Doubt Dost…</p>}><DoubtDostPage /></Suspense>} /><Route path="/courses/:id/doubts" element={<Suspense fallback={<p role="status">Loading Doubt Dost…</p>}><DoubtDostPage /></Suspense>} /></Route>
       <Route element={<ProtectedRoute roles={["student"]} />}><Route path="/student" element={<StudentDashboardPage />} /><Route path="/payments" element={<PaymentHistoryPage />} /><Route path="/payments/:id" element={<PaymentStatusPage />} /><Route path="/courses/:id/assessments" element={<StudentAssessmentsPage />} /><Route path="/assessment-attempts/:id" element={<AssessmentAttemptPage />} /></Route>
       <Route element={<ProtectedRoute roles={["instructor", "admin"]} />}>
         <Route path="/instructor" element={<MyCoursesPage />} /><Route path="/instructor/courses" element={<MyCoursesPage />} />
