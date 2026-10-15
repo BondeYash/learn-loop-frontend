@@ -7,6 +7,6 @@ test("authentication preserves known local learning destinations and rejects ext
   assert.equal(authReturn({search:"?returnTo=%2Fcatalog%2Fsynthetic-ccc",state:{from:{pathname:"/student"}}}), "/catalog/synthetic-ccc");
   assert.equal(authReturn({search:"",state:{from:{pathname:"/payments/record",search:"?checkout=canceled"}}}), "/payments/record?checkout=canceled");
   assert.equal(authLink("/register", "//evil.invalid"), "/register?returnTo=%2Fdashboard");
-  for (const value of ["/courses/course/assessments", "/assessment-attempts/attempt", "/instructor/courses/course/assessments"]) assert.equal(safeReturnTo(value), value);
-  for (const value of ["/assessment-attempts", "/assessment-attempts/id/answers", "/courses/id/assessments/extra"]) assert.equal(safeReturnTo(value), "/dashboard");
+  for (const value of ["/courses/course/assessments", "/assessment-attempts/attempt", "/instructor/courses/course/assessments", "/courses/course/doubts", "/admin/doubt-dost?course=course"]) assert.equal(safeReturnTo(value), value);
+  for (const value of ["/assessment-attempts", "/assessment-attempts/id/answers", "/courses/id/assessments/extra", "/courses/id/doubts/documents", "/admin/doubt-dost/settings"]) assert.equal(safeReturnTo(value), "/dashboard");
 });

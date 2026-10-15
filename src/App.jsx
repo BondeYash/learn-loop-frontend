@@ -26,6 +26,8 @@ import StudentAssessmentsPage from "./pages/assessments/StudentAssessmentsPage.j
 import AssessmentAttemptPage from "./pages/assessments/AssessmentAttemptPage.jsx";
 const LearningSupportPage = lazy(() => import("./pages/courses/LearningSupportPage.jsx"));
 const AcquisitionPage = lazy(() => import("./pages/courses/AcquisitionPage.jsx"));
+const DoubtDostPage = lazy(() => import("./pages/courses/DoubtDostPage.jsx"));
+const DoubtKnowledgePage = lazy(() => import("./pages/admin/DoubtKnowledgePage.jsx"));
 export default function App() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
@@ -48,6 +50,7 @@ export default function App() {
       <Route path="/dashboard" element={<DashboardIndex />} />
       <Route path="/courses" element={<CoursesPage />} /><Route path="/courses/:id" element={<CourseDetailsPage />} />
       <Route element={<ProtectedRoute roles={["student"]} />}><Route path="/courses/:id/support" element={<Suspense fallback={<p role="status">Loading learning support…</p>}><LearningSupportPage /></Suspense>} /></Route>
+      <Route element={<ProtectedRoute roles={["student"]} />}><Route path="/courses/:id/doubts" element={<Suspense fallback={<p role="status">Loading Doubt Dost…</p>}><DoubtDostPage /></Suspense>} /></Route>
       <Route element={<ProtectedRoute roles={["student"]} />}><Route path="/student" element={<StudentDashboardPage />} /><Route path="/payments" element={<PaymentHistoryPage />} /><Route path="/payments/:id" element={<PaymentStatusPage />} /><Route path="/courses/:id/assessments" element={<StudentAssessmentsPage />} /><Route path="/assessment-attempts/:id" element={<AssessmentAttemptPage />} /></Route>
       <Route element={<ProtectedRoute roles={["instructor", "admin"]} />}>
         <Route path="/instructor" element={<MyCoursesPage />} /><Route path="/instructor/courses" element={<MyCoursesPage />} />
@@ -57,7 +60,7 @@ export default function App() {
         <Route path="/instructor/courses/:id/acquisition" element={<Suspense fallback={<p role="status">Loading course acquisition…</p>}><AcquisitionPage /></Suspense>} />
         <Route path="/instructor/courses/:id/support" element={<Suspense fallback={<p role="status">Loading learning support…</p>}><LearningSupportPage /></Suspense>} />
       </Route>
-      <Route element={<ProtectedRoute roles={["admin"]} />}><Route path="/admin" element={<AdminPage />} /><Route path="/admin/courses/upload" element={<CreateCoursePage />} /></Route>
+      <Route element={<ProtectedRoute roles={["admin"]} />}><Route path="/admin" element={<AdminPage />} /><Route path="/admin/doubt-dost" element={<Suspense fallback={<p role="status">Loading knowledge base…</p>}><DoubtKnowledgePage /></Suspense>} /><Route path="/admin/courses/upload" element={<CreateCoursePage />} /></Route>
     </Route></Route>
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>;

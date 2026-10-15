@@ -88,3 +88,7 @@ The unfiltered listing is fresh for 60 seconds and can be served while refreshin
 The browser keeps only validated public metadata, revalidates on mount, and uses skeletons and automatic retries for cold starts. Course-list metadata can briefly lag a price or publication change; protected content, public course detail and checkout eligibility/prices are checked afresh. The sales page displays actual course prices and introduces no fabricated comparison price or purchase operation.
 
 Validate with `npm test`, `npm run lint`, `npm run build`, `npm run check:cloudflare`, and `tests/landing_load_browser.py` / `tests/exam_notifications_browser.py` / `tests/public_catalog_browser.py`. Backend catalog tests verify readiness for text, PDFs, unfinished videos and empty courses. Cache behavior follows [Cloudflare Cache API](https://developers.cloudflare.com/workers/runtime-apis/cache/) and [Worker background tasks](https://developers.cloudflare.com/workers/runtime-apis/context/#waituntil).
+
+## Doubt Dost
+
+The course PDF assistant uses the existing same-origin API proxy. Follow [Doubt Dost setup](doubt-dost.md); keep the Gemini key only in the backend.
