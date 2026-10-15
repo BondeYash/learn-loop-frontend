@@ -1,3 +1,4 @@
+import { Button } from "./Action.jsx";
 import { AlertCircle, CheckCircle2, Info, TriangleAlert, X } from "lucide-react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -9,7 +10,7 @@ function NotificationIcon({ type }) {
 }
 
 function CloseNotification({ closeToast }) {
-  return <button type="button" className="notification-close" aria-label="Dismiss notification" onClick={closeToast}><X size={18} aria-hidden="true" /></button>;
+  return <Button type="button" className="notification-close" aria-label="Dismiss notification" onClick={closeToast}><X size={18} aria-hidden="true" /></Button>;
 }
 
 export default function Notifications() {

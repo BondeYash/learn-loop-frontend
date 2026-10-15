@@ -1,15 +1,15 @@
 .doubt-chat { overflow: hidden; min-width: 0; }
 .doubt-chat-heading { display: flex; align-items: center; gap: 14px; padding: 22px; border-bottom: 1px solid var(--line); background: var(--soft); }
-.doubt-avatar { display: grid; place-items: center; flex-shrink: 0; width: 48px; height: 48px; border-radius: 16px; background: #b89aff; color: #2d2340; }
+.doubt-avatar { display: grid; place-items: center; flex-shrink: 0; width: 48px; height: 48px; border-radius: 16px; background: #d7f863; color: #18221f; }
 .doubt-conversation { padding: 24px; max-height: 68vh; min-height: 260px; overflow-y: auto; overscroll-behavior: contain; }
 .doubt-welcome { max-width: 520px; margin: 24px auto; text-align: center; padding: 16px 0 32px; }
-.doubt-welcome > svg { margin: auto; color: #9570db; }
+.doubt-welcome > svg { margin: auto; color: var(--primary); }
 .doubt-prompts { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 24px; }
 .doubt-prompts button { gap: 8px; white-space: normal; }
 .doubt-turn + .doubt-turn { margin-top: 30px; }
 .doubt-question { margin-left: auto; max-width: 85%; border: 1px solid var(--line); border-radius: 18px 18px 4px 18px; background: var(--soft); padding: 16px 20px; }
 .doubt-answer { margin-top: 22px; padding: 0 4px; }
-.doubt-answer-label { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #8b63cc; }
+.doubt-answer-label { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--primary); }
 .doubt-sources { margin-top: 22px; }
 .doubt-sources details { border: 1px solid var(--line); border-radius: 12px; margin-top: 10px; padding: 12px 14px; }
 .doubt-sources summary { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
@@ -17,7 +17,7 @@
 .doubt-sources summary span { overflow-wrap: anywhere; }
 .doubt-answer-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 18px; }
 .doubt-feedback { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; font-size: 12px; border-radius: 6px; padding: 4px; color: var(--muted); }
-.doubt-feedback[aria-pressed=true] { color: #8b63cc; background: var(--soft); }
+.doubt-feedback[aria-pressed=true] { color: var(--primary); background: var(--soft); }
 .doubt-thinking { display: flex; align-items: center; gap: 10px; padding: 24px 0 4px; font-size: 14px; }
 .doubt-composer { border-top: 1px solid var(--line); padding: 22px; }
 .doubt-composer-actions { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 14px; }
@@ -31,3 +31,17 @@
 .doubt-state-published { background: #def4df; color: #28552e; }
 @media(max-width: 900px) { .doubt-admin-grid { grid-template-columns: minmax(0, 1fr); } }
 @media(max-width: 480px) { .doubt-chat-heading, .doubt-composer, .doubt-conversation { padding: 16px; } .doubt-question { max-width: 96%; padding: 14px; } .doubt-composer-actions > label, .doubt-composer-actions > button { width: 100%; } .doubt-feedback { font-size: 11px; } }
+
+.workspace-shell .doubt-chat { border: 1px solid var(--line); border-radius: 18px; background: var(--panel); padding: 0; }
+.doubt-chat-heading { background: transparent; padding: 24px; }
+.doubt-avatar { border-radius: 50%; }
+.doubt-question { background: var(--blue-soft); border: 0; border-radius: 18px 18px 3px 18px; }
+.doubt-document { border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 22px 0; margin-top: 10px; }
+.doubt-document-title { font-size: .95rem; font-weight: 800; }
+.doubt-feedback { min-height: 44px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; font-size: .68rem; }
+.doubt-feedback:hover { border-color: var(--primary); background: var(--soft); }
+.doubt-answer-label { color: var(--primary); }
+.doubt-admin-grid { gap: 40px; }
+.doubt-usage-strip .stat-card > p:last-child { font-size: clamp(1.1rem, 2vw, 1.8rem); }
+@media(min-width:901px) { .doubt-admin-grid > form { border-left: 1px solid var(--line); border-top: 0; padding: 0 0 0 28px; } }
+@media(max-width:640px) { .doubt-admin-grid { gap: 28px; } .doubt-chat-heading, .doubt-conversation, .doubt-composer { padding: 18px; } }

@@ -4,6 +4,9 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
+  // The OCR dependency is first used inside a worker. Discover it at startup
+  // so the dev server does not reload an unsaved assessment on first OCR use.
+  optimizeDeps: { include: ["tesseract.js"] },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

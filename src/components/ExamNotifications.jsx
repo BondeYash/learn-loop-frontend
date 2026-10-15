@@ -1,3 +1,4 @@
+import { Button } from "./Action.jsx";
 import { useState } from "react";
 import { ArrowUpRight, BellRing, CalendarDays, Search } from "lucide-react";
 import "./ExamNotifications.css";
@@ -30,10 +31,10 @@ export default function ExamNotifications({ feed }) {
       <label className="exam-update-search"><span>Find an exam in these updates</span><div><Search size={18} aria-hidden="true" /><input type="search" value={query} maxLength={100} onChange={event => { setQuery(event.target.value); setExpanded(false); }} placeholder="Try SSC, railway or banking" /></div></label>
       <p className="exam-update-count" role="status">{matching.length} {matching.length === 1 ? "update" : "updates"}{query.trim() ? " matching your search" : " in the latest feed"}</p>
       <ul className="exam-notice-list">{visible.map(notice => <li key={notice.id}>
-        <div>{dateLabel(notice.publishedOn) && <p className="exam-notice-date"><CalendarDays size={14} aria-hidden="true" /><span>Published <time dateTime={notice.publishedOn}>{dateLabel(notice.publishedOn)}</time></span></p>}<h3><a href={notice.url} target="_blank" rel="noopener noreferrer">{notice.title}<ArrowUpRight size={20} aria-hidden="true" /><span className="sr-only"> (opens source in a new tab)</span></a></h3></div>
+        <div>{dateLabel(notice.publishedOn) && <p className="exam-notice-date"><CalendarDays size={14} aria-hidden="true" /><span>Published <time dateTime={notice.publishedOn}>{dateLabel(notice.publishedOn)}</time></span></p>}<h3><a href={notice.url} target="_blank" rel="noopener noreferrer"><span className="exam-notice-title">{notice.title}</span><ArrowUpRight size={20} aria-hidden="true" /><span className="sr-only"> (opens source in a new tab)</span></a></h3></div>
       </li>)}</ul>
       {matching.length === 0 && <p className="exam-updates-state">No matching update in this feed. Try another exam name.</p>}
-      {matching.length > 6 && <button type="button" className="btn-secondary exam-updates-more" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? "Show fewer updates" : `Show all ${matching.length} updates`}</button>}
+      {matching.length > 6 && <Button type="button" className="btn-secondary exam-updates-more" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? "Show fewer updates" : `Show all ${matching.length} updates`}</Button>}
     </>}
     {!loading && data?.status === "ready" && !notices.length && <p className="exam-updates-state">No new notifications are available in the current feed. Check back later.</p>}
   </section>;

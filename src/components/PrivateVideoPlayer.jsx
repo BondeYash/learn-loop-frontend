@@ -1,3 +1,4 @@
+import { Button } from "./Action.jsx";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Keyboard, Maximize, Minimize, Pause, Play, RotateCcw, RotateCw } from "lucide-react";
 import axiosInstance, { errorMessage } from "../services/axiosInstance.js";
@@ -142,20 +143,20 @@ export default function PrivateVideoPlayer({ lessonId, title, studentId, ticketP
     <div className="player-feedback" role="status" aria-live="polite" aria-atomic="true">{feedback && <span>{feedback}</span>}</div></div>
       <div className="player-controls" aria-label="Video playback controls">
         <div className="player-transport">
-          <button type="button" disabled={!mediaReady || Boolean(error)} className="player-control player-seek" onClick={() => seek(-preferences.skip)} aria-label={`Back ${preferences.skip} seconds`} title={`Back ${preferences.skip} seconds (J)`}><RotateCcw size={22} aria-hidden="true" /><span>{preferences.skip}s</span></button>
-          <button type="button" disabled={!mediaReady || Boolean(error)} className="player-control player-play" onClick={togglePlayback} aria-label={paused ? "Play video" : "Pause video"} title="Play / pause (K)">{paused ? <Play size={24} aria-hidden="true" /> : <Pause size={24} aria-hidden="true" />}<span>{paused ? "Play" : "Pause"}</span></button>
-          <button type="button" disabled={!mediaReady || Boolean(error)} className="player-control player-seek" onClick={() => seek(preferences.skip)} aria-label={`Forward ${preferences.skip} seconds`} title={`Forward ${preferences.skip} seconds (L)`}><RotateCw size={22} aria-hidden="true" /><span>{preferences.skip}s</span></button>
+          <Button type="button" disabled={!mediaReady || Boolean(error)} className="player-control player-seek" onClick={() => seek(-preferences.skip)} aria-label={`Back ${preferences.skip} seconds`} title={`Back ${preferences.skip} seconds (J)`}><RotateCcw size={22} aria-hidden="true" /><span>{preferences.skip}s</span></Button>
+          <Button type="button" disabled={!mediaReady || Boolean(error)} className="player-control player-play" onClick={togglePlayback} aria-label={paused ? "Play video" : "Pause video"} title="Play / pause (K)">{paused ? <Play size={24} aria-hidden="true" /> : <Pause size={24} aria-hidden="true" />}<span>{paused ? "Play" : "Pause"}</span></Button>
+          <Button type="button" disabled={!mediaReady || Boolean(error)} className="player-control player-seek" onClick={() => seek(preferences.skip)} aria-label={`Forward ${preferences.skip} seconds`} title={`Forward ${preferences.skip} seconds (L)`}><RotateCw size={22} aria-hidden="true" /><span>{preferences.skip}s</span></Button>
         </div>
         <div className="player-settings">
           <label className="player-setting">Speed<select aria-label="Playback speed" value={preferences.speed} onChange={event => changeSpeed(Number(event.target.value))}>{PLAYBACK_SPEEDS.map(speed => <option key={speed} value={speed}>{speed === 1 ? "1× Normal" : `${speed}×`}</option>)}</select></label>
           <label className="player-setting">Skip by<select aria-label="Skip interval" value={preferences.skip} onChange={event => updatePreferences({ skip: Number(event.target.value) })}>{SKIP_SECONDS.map(seconds => <option key={seconds} value={seconds}>{seconds} sec</option>)}</select></label>
         </div>
-        {fullscreenAvailable && <button type="button" className="player-control player-fullscreen" aria-label={fullscreen ? "Exit video fullscreen" : "Enter video fullscreen"} aria-pressed={fullscreen} onClick={toggleFullscreen} title="Full screen (F)">{fullscreen ? <Minimize size={22} aria-hidden="true" /> : <Maximize size={22} aria-hidden="true" />}<span>{fullscreen ? "Exit full screen" : "Full screen"}</span></button>}
+        {fullscreenAvailable && <Button type="button" className="player-control player-fullscreen" aria-label={fullscreen ? "Exit video fullscreen" : "Enter video fullscreen"} aria-pressed={fullscreen} onClick={toggleFullscreen} title="Full screen (F)">{fullscreen ? <Minimize size={22} aria-hidden="true" /> : <Maximize size={22} aria-hidden="true" />}<span>{fullscreen ? "Exit full screen" : "Full screen"}</span></Button>}
       </div>
       <details className="player-shortcuts"><summary><Keyboard size={15} aria-hidden="true" />Keyboard shortcuts</summary><p id={shortcutsId}>Focus the player first. <kbd>Space</kbd> / <kbd>K</kbd> play or pause · <kbd>J</kbd> / <kbd>L</kbd> skip by your chosen interval · <kbd>←</kbd> / <kbd>→</kbd> jump 5 seconds · <kbd>&lt;</kbd> / <kbd>&gt;</kbd> change speed · <kbd>M</kbd> mute{fullscreenAvailable && <> · <kbd>F</kbd> full screen</>}. The browser’s own controls keep their usual keys.</p></details>
     </div>}
     {fullscreenError && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300" role="status">{fullscreenError}</p>}
     {!ticket && !error && <p className="card" role="status">{ticketPath ? "Loading sample video…" : "Loading private video…"}</p>}
-    {error && <div className="card mt-3" role="alert"><p className="text-sm text-red-700 dark:text-red-300">{error}</p><button className="btn-secondary mt-3" onClick={() => { automaticRetries.current = 0; renew(); }}>Retry playback</button></div>}
+    {error && <div className="card mt-3" role="alert"><p className="text-sm text-red-700 dark:text-red-300">{error}</p><Button className="btn-secondary mt-3" onClick={() => { automaticRetries.current = 0; renew(); }}>Retry playback</Button></div>}
   </div>;
 }

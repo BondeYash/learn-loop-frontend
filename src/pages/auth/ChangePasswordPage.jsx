@@ -1,6 +1,7 @@
+import { Button, BackLink } from "../../components/Action.jsx";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { KeyRound, LogOut } from "lucide-react";
 import { authReturn } from "../../services/authReturn.js";
 import AuthLayout from "./AuthLayout.jsx";
@@ -37,8 +38,8 @@ export default function ChangePasswordPage() {
       <p id="password-help" className="text-xs leading-5 text-slate-500 dark:text-slate-400">Use at least 12 characters, up to 72 UTF-8 bytes. Choose a password you do not use elsewhere.</p>
       <label className="block text-sm font-medium">Confirm new password<input required name="confirmation" type="password" autoComplete="new-password" minLength={12} maxLength={72} className="input-field mt-2" disabled={busy} /></label>
       {error && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{error}</p>}
-      <button className="btn-primary w-full" disabled={busy}>{busy ? "Saving…" : "Save private password"}</button>
+      <Button className="btn-primary w-full" disabled={busy}>{busy ? "Saving…" : "Save private password"}</Button>
     </form>
-    <div className="mt-5 flex justify-between text-sm">{!required && <Link to="/dashboard" className="text-primary-600 dark:text-primary-300">Back to dashboard</Link>}<button type="button" className="inline-flex items-center gap-2 text-slate-500 dark:text-slate-400" onClick={signOut} disabled={busy}><LogOut size={15} />Sign out</button></div>
+    <div className="mt-5 flex justify-between text-sm">{!required && <BackLink to="/dashboard" >Back to dashboard</BackLink>}<Button type="button" className="inline-flex items-center gap-2 text-slate-500 dark:text-slate-400" onClick={signOut} disabled={busy}><LogOut size={15} />Sign out</Button></div>
   </section></AuthLayout>;
 }

@@ -1,19 +1,17 @@
 import { BRAND_NAME } from "../config/brand.js";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { ArrowUpRight, BookOpen, Compass, Sparkles } from "lucide-react";
 import Brand from "../components/Brand.jsx";
+import { ActionLink } from "../components/Action.jsx";
 import { ThemeToggle } from "../theme/ThemeProvider.jsx";
-
 export default function PublicLayout() {
-  const home = useLocation().pathname === "/";
-  const user = useSelector((state) => state.auth.user);
-  return <div className="workspace-shell flex min-h-screen flex-col">
+  const home = useLocation().pathname === "/", user = useSelector(state => state.auth.user);
+  return <div className="workspace-shell public-shell">
     <a href="#public-content" className="skip-link">Skip to content</a>
-    <header className="workspace-header"><div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
-      <Link to="/" aria-label={`${BRAND_NAME} home`}><Brand /></Link>
-      <nav aria-label="Main navigation" className="flex flex-wrap items-center gap-2"><NavLink className="workspace-nav" to="/catalog">Courses</NavLink>{home && <a className="workspace-nav public-study-nav" href="#study-plan">Study plan</a>}<ThemeToggle /><Link className="btn-secondary" to={user ? "/dashboard" : "/login"}>{user ? "Dashboard" : "Sign in"}</Link></nav>
-    </div></header>
-    <main id="public-content" tabIndex={-1} className="mx-auto w-full max-w-7xl flex-1 break-words px-4 py-10 sm:px-6 sm:py-14"><Outlet /></main>
-    <footer className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-6 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400 sm:px-6"><span>{BRAND_NAME} · Government-exam learning</span><Link className="underline underline-offset-4" to="/catalog">Browse courses</Link></footer>
+    <div className="public-announcement"><Sparkles size={15} aria-hidden="true" /><span>Apni mehnat. Apna future.</span><span className="announcement-extra">Your next chapter starts with one topic.</span><ArrowUpRight size={15} aria-hidden="true" /></div>
+    <header className="workspace-header public-header"><div className="public-header-inner"><Link to="/" aria-label={`${BRAND_NAME} home`}><Brand /></Link><nav aria-label="Main navigation"><NavLink className="workspace-nav" to="/catalog"><BookOpen size={17} aria-hidden="true" />Courses</NavLink>{home && <a className="workspace-nav public-study-nav" href="#study-plan"><Compass size={17} aria-hidden="true" />Study plan</a>}<ThemeToggle /><ActionLink className="btn-primary" to={user ? "/dashboard" : "/login"}>{user ? "Dashboard" : "Sign in"}<ArrowUpRight size={17} aria-hidden="true" /></ActionLink></nav></div></header>
+    <main id="public-content" tabIndex={-1} className={`public-content ${home ? "public-home" : ""}`}><Outlet /></main>
+    <footer className="public-footer"><div><Brand /><p>Mehnat ka naya address.</p></div><div className="public-footer-note"><span>{BRAND_NAME} · Government-exam learning</span><p>Learn. Practise. Repeat. Make it yours.</p></div><ActionLink className="btn-secondary" to="/catalog">Browse courses<ArrowUpRight size={18} aria-hidden="true" /></ActionLink></footer>
   </div>;
 }

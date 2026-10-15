@@ -26,3 +26,15 @@
 .exam-feed-skeleton { margin-top: 28px; }
 .exam-notice-placeholder { padding: 25px 0; min-height: 123px; border-bottom: 1px solid var(--line); }
 .exam-connecting { margin-top: 16px; font-size: .76rem; color: var(--muted); }
+
+.exam-updates { padding-top: 38px; border-top: 1px solid var(--line); }
+.exam-updates h2 { font-size: clamp(2rem, 3.5vw, 3rem); font-weight: 850; letter-spacing: -.055em; }
+.exam-notice-list li { padding-block: 26px; }
+.exam-notice-list h3 { font-size: .83rem; font-weight: 750; }
+.exam-notice-list h3 svg { box-sizing: content-box; border: 1px solid var(--line); border-radius: 50%; padding: 9px; }
+.exam-update-search > div { border-radius: 999px; border-color: var(--line); }
+.exam-update-search input { border-radius: 999px; }
+
+.exam-notice-title { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+
+.exam-update-search > div { border-color: var(--control); }

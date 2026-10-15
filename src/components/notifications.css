@@ -5,16 +5,16 @@
   font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', sans-serif;
 }
 .lessonloop-toasts .Toastify__toast {
-  --notification-accent: #5D37C8; --notification-tint: #F3EDF9;
+  --notification-accent: #3346ff; --notification-tint: #edf0ff;
   margin: 12px 0 0; padding: 14px 10px 18px 14px; min-height: 88px;
   border: 1px solid var(--control); border-inline-start: 4px solid var(--notification-accent);
-  border-radius: 18px; background-color: var(--panel); color: var(--ink);
+  border-radius: 12px; background-color: var(--panel); color: var(--ink);
   box-shadow: 0 10px 30px -12px #19172455; align-items: flex-start;
 }
 .lessonloop-toasts .Toastify__toast--success { --notification-accent: #276449; --notification-tint: #E9F5E7; }
 .lessonloop-toasts .Toastify__toast--error { --notification-accent: #AF2538; --notification-tint: #FFF0F1; }
 .lessonloop-toasts .Toastify__toast--warning { --notification-accent: #805000; --notification-tint: #FFF3D1; }
-.dark .lessonloop-toasts .Toastify__toast { --notification-accent: #BEA0FF; --notification-tint: #302A43; }
+.dark .lessonloop-toasts .Toastify__toast { --notification-accent: #d7f863; --notification-tint: #253638; }
 .dark .lessonloop-toasts .Toastify__toast--success { --notification-accent: #B4DFB0; --notification-tint: #253C31; }
 .dark .lessonloop-toasts .Toastify__toast--error { --notification-accent: #FFB8C1; --notification-tint: #4C2936; }
 .dark .lessonloop-toasts .Toastify__toast--warning { --notification-accent: #FFDA8A; --notification-tint: #443620; }

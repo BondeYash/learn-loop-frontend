@@ -7,5 +7,5 @@ axiosInstance.interceptors.response.use((response) => response, (error) => {
   if (error.response?.data?.code === "PASSWORD_CHANGE_REQUIRED") window.dispatchEvent(new Event("lms-password-change-required"));
   return Promise.reject(error);
 });
-export const errorMessage = (error) => error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || (error.code === "ECONNABORTED" ? "The request timed out. Please retry." : error.message) || "Something went wrong. Please retry.";
+export const errorMessage = (error) => error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || ([502, 503, 504].includes(error.response?.status) ? "The server is taking longer to respond. Please try again in a moment." : error.code === "ECONNABORTED" ? "The request timed out. Please retry." : error.message) || "Something went wrong. Please retry.";
 export default axiosInstance;

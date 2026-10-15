@@ -1,3 +1,4 @@
+import { Button } from "./Action.jsx";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -11,7 +12,7 @@ function InterestForm({ courseId, options }) {
   useEffect(() => () => action.current?.abort(), []);
   const cancel = async () => { if ((form.email || form.contactAcknowledged || form.marketingConsent) && !await decide({ title: "Discard unsent interest request?", body: "Your email and choices have not been saved. Discard these unsent details?", confirmLabel: "Discard request", destructive: true })) return; setOpen(false); setForm(empty()); setError(""); };
   if (saved) return <p className="mt-5 text-sm leading-6" role="status">Your request is saved for the course team. A response is not guaranteed. You can still use the sample and enroll independently.</p>;
-  if (!open) return <button className="btn-secondary mt-5 w-full" onClick={() => setOpen(true)}>Request course information or a demo</button>;
+  if (!open) return <Button className="btn-secondary mt-5 w-full" onClick={() => setOpen(true)}>Request course information or a demo</Button>;
   return <form className="mt-5" onSubmit={async (event) => { event.preventDefault(); if (pending.current) return; pending.current = true; setBusy(true); setError(""); const request = new AbortController(); action.current = request;
     const signature = JSON.stringify(form); if (attempt.current?.signature !== signature) attempt.current = { signature, id: crypto.randomUUID() };
     try { await axiosInstance.post(`/public/courses/${courseId}/interest`, { ...form, requestId: attempt.current.id }, { signal: request.signal }); if (!request.signal.aborted) { setSaved(true); setForm(empty()); } }
@@ -22,7 +23,7 @@ function InterestForm({ courseId, options }) {
       <label className="flex min-h-12 items-start gap-3 text-sm leading-6"><input className="mt-1" type="checkbox" required checked={form.contactAcknowledged} onChange={(e) => setForm({ ...form, contactAcknowledged: e.target.checked })} />I allow the course team to use my email to respond to this request.</label>
       <label className="flex min-h-12 items-start gap-3 text-sm leading-6"><input className="mt-1" type="checkbox" checked={form.marketingConsent} onChange={(e) => setForm({ ...form, marketingConsent: e.target.checked })} />Optional: I also agree to ongoing course marketing emails from this team.</label>
     </fieldset><a href={options.policyUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-sm underline">Read the course privacy notice</a>
-    {error && <p role="alert" className="mt-3 text-sm text-red-700 dark:text-red-300">{error}</p>}<div className="mt-4 flex flex-wrap gap-3"><button className="btn-primary" disabled={busy}>{busy ? "Saving request…" : "Save interest request"}</button><button className="btn-secondary" type="button" disabled={busy} onClick={cancel}>Cancel</button></div>
+    {error && <p role="alert" className="mt-3 text-sm text-red-700 dark:text-red-300">{error}</p>}<div className="mt-4 flex flex-wrap gap-3"><Button className="btn-primary" disabled={busy}>{busy ? "Saving request…" : "Save interest request"}</Button><Button className="btn-secondary" type="button" disabled={busy} onClick={cancel}>Cancel</Button></div>
   </form>;
 }
 export default function CourseAcquisition({ courseId }) {
@@ -42,7 +43,7 @@ export default function CourseAcquisition({ courseId }) {
     {options.measurementEnabled && navigator.globalPrivacyControl !== true && <><label className="flex min-h-12 items-start gap-3 text-sm leading-6"><input className="mt-1" type="checkbox" checked={consent} onChange={(e) => {
       if (e.target.checked) { const stored = saveAttribution(courseId, source.current); setConsent(stored); if (!stored) setMessage("Optional measurement could not be enabled because tab storage is unavailable."); }
       else withdraw();
-    }} />Optional: count this page view and save the source of my enrollment for this course.</label><p className="mt-2 text-xs leading-5 text-muted">No advertising trackers or visitor fingerprint. Counts are not unique people. Server records expire after {options.retentionDays} days. You can switch this off here.</p><a href={options.policyUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm underline">Measurement privacy notice</a>{message && <p role="status" className="mt-3 text-sm leading-6">{message}</p>}{consent && !visited.current && message && <button className="btn-secondary mt-3" onClick={() => setRetry((v) => v + 1)}>Retry optional measurement</button>}{eraseError && <button className="btn-secondary mt-3" onClick={withdraw}>Retry removing saved source</button>}</>}
+    }} />Optional: count this page view and save the source of my enrollment for this course.</label><p className="mt-2 text-xs leading-5 text-muted">No advertising trackers or visitor fingerprint. Counts are not unique people. Server records expire after {options.retentionDays} days. You can switch this off here.</p><a href={options.policyUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm underline">Measurement privacy notice</a>{message && <p role="status" className="mt-3 text-sm leading-6">{message}</p>}{consent && !visited.current && message && <Button className="btn-secondary mt-3" onClick={() => setRetry((v) => v + 1)}>Retry optional measurement</Button>}{eraseError && <Button className="btn-secondary mt-3" onClick={withdraw}>Retry removing saved source</Button>}</>}
     {options.interestEnabled && <InterestForm key={courseId} courseId={courseId} options={options} />}
   </section>;
 }

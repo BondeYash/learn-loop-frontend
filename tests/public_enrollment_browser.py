@@ -79,7 +79,7 @@ def run_checks(browser, media, evidence):
             for width in [320,1280]:
                 page.set_viewport_size({'width':width,'height':900});fits(page,'catalog select fits '+str(width)+'px '+theme)
                 css=category.evaluate('e=>({appearance:getComputedStyle(e).appearance,padding:getComputedStyle(e).paddingRight,image:getComputedStyle(e).backgroundImage,position:getComputedStyle(e).backgroundPosition})')
-                assert css['appearance']=='none' and float(css['padding'].replace('px',''))>=40 and css['image']!='none' and '17px' in css['position'],css
+                assert css['appearance']=='none' and float(css['padding'].replace('px',''))>=40 and css['image']!='none' and '16px' in css['position'],css
                 category.focus();expect(category).to_be_focused();category.press('ArrowDown');category.press('Enter');expect(category).to_have_value(CATEGORY_ID)
                 page.screenshot(path=str(evidence/('select-'+str(width)+'-'+theme+'.png')),full_page=True)
             page.set_viewport_size({'width':640,'height':900});page.evaluate("document.documentElement.style.zoom='2'");fits(page,'catalog select at 200% '+theme);page.evaluate("document.documentElement.style.zoom=''")

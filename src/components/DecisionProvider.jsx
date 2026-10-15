@@ -1,3 +1,4 @@
+import { Button } from "./Action.jsx";
 import { createContext, useContext, useEffect, useId, useRef, useState } from "react";
 import { X, AlertTriangle, Pencil } from "lucide-react";
 import { errorMessage } from "../services/axiosInstance.js";
@@ -18,12 +19,12 @@ function DecisionDialog({ options, finish }) {
   };
   return <dialog ref={ref} tabIndex={-1} onKeyDown={trapDialogFocus} className="admin-dialog decision-dialog" aria-labelledby={titleId} aria-describedby={bodyId} onCancel={(e) => { e.preventDefault(); if (!submitting.current) finish(null); }}>
     <form onSubmit={submit}>
-      <div className="flex items-start justify-between gap-4"><span className={`dialog-icon ${options.destructive ? "dialog-icon-danger" : ""}`} aria-hidden="true">{options.inputLabel ? <Pencil size={20} /> : <AlertTriangle size={20} />}</span><button type="button" className="btn-secondary h-9 w-9 !p-0" aria-label="Close dialog" disabled={busy} onClick={() => finish(null)}><X size={17} /></button></div>
+      <div className="flex items-start justify-between gap-4"><span className={`dialog-icon ${options.destructive ? "dialog-icon-danger" : ""}`} aria-hidden="true">{options.inputLabel ? <Pencil size={20} /> : <AlertTriangle size={20} />}</span><Button type="button" className="btn-secondary h-9 w-9 !p-0" aria-label="Close dialog" disabled={busy} onClick={() => finish(null)}><X size={17} /></Button></div>
       <h2 id={titleId} className="mt-5 text-xl font-semibold">{options.title}</h2><p id={bodyId} className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{options.body}</p>
       {options.inputLabel && <label className="mt-5 block text-sm font-medium">{options.inputLabel}<input autoFocus required maxLength={options.maxLength || 160} value={value} disabled={busy} onChange={(e) => setValue(e.target.value)} className="input-field mt-2" /></label>}
       {error && <p role="alert" className="mt-4 text-sm text-red-700 dark:text-red-300">{error}</p>}
       {busy && <p role="status" className="mt-4 text-sm text-slate-500 dark:text-slate-400">Saving your change…</p>}
-      <div className="mt-7 flex flex-wrap justify-end gap-3"><button data-cancel type="button" className="btn-secondary" disabled={busy} onClick={() => finish(null)}>Cancel</button><button type="submit" className={options.destructive ? "btn-danger" : "btn-primary"} disabled={busy || Boolean(options.inputLabel && !value.trim())}>{busy ? "Saving…" : options.confirmLabel || "Confirm"}</button></div>
+      <div className="mt-7 flex flex-wrap justify-end gap-3"><Button data-cancel type="button" className="btn-secondary" disabled={busy} onClick={() => finish(null)}>Cancel</Button><Button type="submit" className={options.destructive ? "btn-danger" : "btn-primary"} disabled={busy || Boolean(options.inputLabel && !value.trim())}>{busy ? "Saving…" : options.confirmLabel || "Confirm"}</Button></div>
     </form>
   </dialog>;
 }

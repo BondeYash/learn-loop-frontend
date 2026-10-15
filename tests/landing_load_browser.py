@@ -13,14 +13,15 @@ def run_checks(browser, _media, evidence):
     contexts, errors, unexpected = [], [], []
     course = {**CARD, "title": "NIELIT Course on Computer Concepts (CCC)", "amountMinor": 19900, "summary": "Learn computer fundamentals, revise key concepts and build a regular study routine."}
     feed = {"enabled": True, "status": "ready", "updatedAt": datetime.now(timezone.utc).isoformat(), "notices": [{"id": str(n), "title": f"Synthetic SSC recruitment update {n+1}", "url": f"https://sarkariresult.com.cm/fixture-{n}/", "publishedOn": "2026-10-13"} for n in range(8)]}
-    def fixture(mode="held", theme="light"):
+    def fixture(mode="held", theme="light", motion_fail=False):
         ctx = browser.new_context(viewport={"width":1440,"height":1000},service_workers="block"); contexts.append(ctx)
         ctx.add_init_script(f"localStorage.setItem('lessonloop_theme','{theme}')")
         page=ctx.new_page();page.clock.install();page.on('pageerror',lambda error:errors.append(str(error)))
-        state={"courses":mode,"notices":mode,"calls":[],"held":[],"summary":course['summary']}
+        state={"courses":mode,"notices":mode,"calls":[],"held":[],"summary":course['summary'],"motionBlocked":False}
         def respond(route):
             request,u=route.request,urlparse(route.request.url)
             if f'{u.scheme}://{u.netloc}'!=harness.ORIGIN:unexpected.append(request.url);route.abort();return
+            if motion_fail and u.path.endswith('/LandingMotion.jsx'):state['motionBlocked']=True;route.abort();return
             if not u.path.startswith('/api/'):route.continue_();return
             state['calls'].append((request.method,u.path,u.query))
             if u.path=='/api/auth/me':route.fulfill(status=401,json={'message':'Sign in'});return
@@ -56,7 +57,7 @@ def run_checks(browser, _media, evidence):
         clean(page);page.screenshot(path=str(evidence/'landing-skeleton-desktop.png'),full_page=True)
         release(state,'courses');expect(page.locator('#catalog').get_by_role('heading',name=course['title'])).to_be_visible()
         expect(page.locator('.exam-feed-skeleton')).to_be_visible();release(state,'notices');expect(page.locator('.exam-notice-list li')).to_have_count(6)
-        expect(page.locator('.hero-offer-price strong')).to_have_text('₹199');expect(page.locator('.course-sale-price')).to_have_text('₹199')
+        expect(page.locator('.hero-price-link strong')).to_have_text('₹199');expect(page.locator('.course-sale-price')).to_have_text('₹199')
         for theme in ['light','dark']:
             if theme=='dark':page.get_by_role('button',name='Switch to dark theme').click()
             for width in [320,768,1440]:
@@ -82,6 +83,12 @@ def run_checks(browser, _media, evidence):
         assert len([x for x in retry_state['calls'] if x[1]=='/api/public/courses'])==2
         harness.check(True,'first-visit transient failures recover without a retry button or page reload')
         assert not any(method!='GET' or '/payments/' in path for method,path,_ in state['calls']), 'The landing page never creates a purchase'
+        motion,motion_state=fixture('ready',motion_fail=True);motion.goto(harness.ORIGIN)
+        expect(motion.locator('#catalog').get_by_role('heading',name=course['title'])).to_be_visible()
+        expect(motion.get_by_role('heading',name='Bade sapne. Roz ki taiyaari.')).to_be_visible()
+        motion.wait_for_function("document.querySelector('.hero-actions a') !== null")
+        assert motion_state['motionBlocked'], 'Optional animation module was not exercised'
+        harness.check(True,'optional animation download failure preserves the landing page and course actions')
         harness.check(not errors and not unexpected,f'no runtime errors or external traffic: {errors}, {unexpected}')
     finally:
         for ctx in contexts:ctx.unroute_all(behavior='ignoreErrors');ctx.close()

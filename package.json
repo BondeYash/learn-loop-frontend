@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint src worker --ext js,jsx",
-    "test": "node tests/auth.test.js && node --test tests/authReturn.test.js tests/videoPreferences.test.js && node tests/videoValidation.test.js && node --test tests/proxy.test.js tests/publicCache.test.js tests/publicContent.test.js && node --test tests/questionImport.test.js tests/assessmentValidation.test.js tests/payments.test.js",
+    "test": "node tests/auth.test.js && node --test tests/authReturn.test.js tests/videoPreferences.test.js tests/resilientGet.test.js && node tests/videoValidation.test.js && node --test tests/proxy.test.js tests/publicCache.test.js tests/publicContent.test.js && node --test tests/questionImport.test.js tests/assessmentValidation.test.js tests/payments.test.js",
     "test:proxy": "node --test tests/proxy.test.js tests/publicCache.test.js",
     "dev:cloudflare": "wrangler dev --local --ip 127.0.0.1 --port 8787",
     "check:cloudflare": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
@@ -17,11 +17,13 @@
     "prebuild": "node scripts/prepare-import-assets.mjs"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@reduxjs/toolkit": "^2.2.7",
     "@tesseract.js-data/eng": "1.0.0",
     "@tesseract.js-data/hin": "1.0.0",
     "axios": "^1.20.0",
     "fflate": "0.8.3",
+    "gsap": "^3.15.0",
     "lucide-react": "^0.436.0",
     "pdfjs-dist": "6.4.299",
     "react": "^18.3.1",

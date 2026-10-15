@@ -1,31 +1,31 @@
-.private-player { color: #f7f4ff; color-scheme: dark; container-type: inline-size; }
-.private-player:focus-visible { outline: 3px solid #ac8bfa; outline-offset: 3px; }
-.player-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 20px; padding: 16px; background: #211d30; border-top: 1px solid #ffffff18; flex-shrink: 0; }
+.private-player { color: #f5f8ec; color-scheme: dark; container-type: inline-size; }
+.private-player:focus-visible { outline: 3px solid #d7f863; outline-offset: 3px; }
+.player-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 20px; padding: 16px; background: #142420; border-top: 1px solid #ffffff18; flex-shrink: 0; }
 .player-transport, .player-settings { display: flex; align-items: center; gap: 8px; }
 .player-settings { flex: 0 1 244px; gap: 12px; }
 .player-control { display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-width: 48px; min-height: 52px; padding: 12px; border: 1px solid #ffffff32; border-radius: 12px; background: #ffffff08; font-size: 14px; font-weight: 600; line-height: 1.2; white-space: nowrap; font-variant-numeric: tabular-nums; touch-action: manipulation; transition: background-color .15s, border-color .15s; }
 .player-control svg { flex-shrink: 0; }
 .player-control:hover:not(:disabled) { background: #ffffff16; }
 .player-control:disabled { opacity: .4; cursor: not-allowed; }
-.player-control:active:not(:disabled) { border-color: #ccb6ff; }
+.player-control:active:not(:disabled) { border-color: #d7f863; }
 .player-transport .player-seek { min-width: 68px; }
 .player-transport .player-seek span { font-size: 13px; }
-.player-control:focus-visible, .player-setting select:focus-visible, .player-shortcuts summary:focus-visible { outline: 2px solid #ccb6ff; outline-offset: 3px; }
-.player-play { min-width: 104px; background: #bc9cff; color: #211d30; border-color: #bc9cff; }
-.player-play:hover:not(:disabled) { background: #cfb8ff; }
-.player-setting { display: flex; flex: 1; flex-direction: column; gap: 6px; min-width: 0; font-size: 12px; font-weight: 500; line-height: 1.2; color: #c7bddc; }
+.player-control:focus-visible, .player-setting select:focus-visible, .player-shortcuts summary:focus-visible { outline: 2px solid #d7f863; outline-offset: 3px; }
+.player-play { min-width: 104px; background: #d7f863; color: #142420; border-color: #d7f863; }
+.player-play:hover:not(:disabled) { background: #e5ff98; }
+.player-setting { display: flex; flex: 1; flex-direction: column; gap: 6px; min-width: 0; font-size: 12px; font-weight: 500; line-height: 1.2; color: #bfcfbd; }
 .player-setting:first-child { flex: 1.2; }
-.player-setting select { min-height: 52px; width: 100%; border: 1px solid #ffffff32; border-radius: 12px; background: #2d273f; color: #f7f4ff; padding: 10px 8px; font: inherit; font-size: 14px; cursor: pointer; }
-.player-setting select:hover { border-color: #a996cf; }
+.player-setting select { min-height: 52px; width: 100%; border: 1px solid #ffffff32; border-radius: 12px; background: #243832; color: #f5f8ec; padding: 10px 8px; font: inherit; font-size: 14px; cursor: pointer; }
+.player-setting select:hover { border-color: #98ad92; }
 .player-fullscreen { margin-left: auto; }
-.player-shortcuts { flex-shrink: 0; padding: 0 14px 12px; background: #211d30; font-size: 12px; line-height: 1.8; color: #c7bddc; }
+.player-shortcuts { flex-shrink: 0; padding: 0 14px 12px; background: #142420; font-size: 12px; line-height: 1.8; color: #bfcfbd; }
 .player-shortcuts summary { display: flex; align-items: center; gap: 7px; width: fit-content; cursor: pointer; border-radius: 4px; padding: 5px 0; }
 .player-shortcuts summary::after { content: "+"; margin-left: 4px; }
 .player-shortcuts[open] summary::after { content: "−"; }
 .player-shortcuts p { max-width: 80ch; padding: 7px 0 0; }
-.player-shortcuts kbd { color: #f7f4ff; font-weight: 600; }
+.player-shortcuts kbd { color: #f5f8ec; font-weight: 600; }
 .player-feedback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; padding: 16px; }
-.player-feedback span { background: #171121e8; border: 1px solid #ffffff26; border-radius: 999px; padding: 8px 16px; color: #fff; font-size: clamp(12px, 2vw, 15px); text-align: center; }
+.player-feedback span { background: #142420e8; border: 1px solid #ffffff26; border-radius: 999px; padding: 8px 16px; color: #fff; font-size: clamp(12px, 2vw, 15px); text-align: center; }
 .private-player:fullscreen .player-controls { justify-content: center; }
 .private-player:fullscreen .player-settings { flex: 0 1 244px; }
 .private-player:fullscreen .player-fullscreen { margin-left: 0; }

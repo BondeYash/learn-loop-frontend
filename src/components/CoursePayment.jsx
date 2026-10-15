@@ -1,7 +1,8 @@
+import { Button, ActionLink } from "./Action.jsx";
 import { useCallback, useEffect, useRef, useState } from "react";
 import axiosInstance, { errorMessage } from "../services/axiosInstance.js";
 import { createCheckout, formatInr } from "../services/payments.js";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { getAttribution } from "../services/acquisition.js";
 
 export default function CoursePayment({ courseId, onAccess, publicEnrollment = false, compact = false }) {
@@ -47,9 +48,9 @@ export default function CoursePayment({ courseId, onAccess, publicEnrollment = f
     {!data && !error && <p role="status" className="mt-4 text-sm">Loading course price…</p>}
     {needsPayment && (!data.readiness?.configured || !validMode) && <p className="mt-4 text-sm" role="status">Checkout is being configured. Please try again later.</p>}
     <div className="mt-6 flex flex-wrap gap-3">
-      {quote && !needsPayment ? <button className="btn-primary" disabled={busy} onClick={() => needsEnrollment ? execute(true) : onAccess()}>{busy ? "Enrolling…" : needsEnrollment && isFree ? "Enroll for free" : "Open course"}</button> : data && <button className="btn-primary" disabled={busy || !data.readiness?.configured || !validMode} onClick={() => execute(false)}>{busy ? "Processing payment…" : quote.testMode ? "Continue to test checkout" : "Pay with Razorpay"}</button>}
-      <button className="btn-secondary" disabled={busy} onClick={load}>Refresh price</button>
-      {quote?.pendingOrderId && <Link className="btn-secondary" to={`/payments/${quote.pendingOrderId}`}>Review payment attempt</Link>}
+      {quote && !needsPayment ? <Button className="btn-primary" disabled={busy} onClick={() => needsEnrollment ? execute(true) : onAccess()}>{busy ? "Enrolling…" : needsEnrollment && isFree ? "Enroll for free" : "Open course"}</Button> : data && <Button className="btn-primary" disabled={busy || !data.readiness?.configured || !validMode} onClick={() => execute(false)}>{busy ? "Processing payment…" : quote.testMode ? "Continue to test checkout" : "Pay with Razorpay"}</Button>}
+      <Button className="btn-secondary" disabled={busy} onClick={load}>Refresh price</Button>
+      {quote?.pendingOrderId && <ActionLink className="btn-secondary" to={`/payments/${quote.pendingOrderId}`}>Review payment attempt</ActionLink>}
     </div>
   </section>;
 }

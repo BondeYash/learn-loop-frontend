@@ -4,7 +4,7 @@
   "description": "Government-exam learning, course outlines and selected samples. Padhai, apne pace pe.",
   "start_url": "/",
   "display": "browser",
-  "background_color": "#FFF9EF",
-  "theme_color": "#FFF9EF",
+  "background_color": "#F7F7F0",
+  "theme_color": "#F7F7F0",
   "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
 }

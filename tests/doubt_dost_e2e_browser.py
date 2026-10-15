@@ -20,6 +20,7 @@ def run_checks(browser, _media, evidence):
     env.update(NODE_ENV='test', CLIENT_URL=harness.ORIGIN, AUTH_RATE_LIMIT_MAX='100', RAZORPAY_MODE='test')
     fixture = subprocess.Popen(['node','tests/doubtBrowserFixture.js'],cwd=backend,env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,bufsize=1)
     contexts=[]; errors=[]; unexpected=[]; calls=[]
+    gateway_failures={'/api/admin/doubt-dost':1, '/api/admin/doubt-dost/activity':1}
     output=io.BytesIO();pdf=canvas.Canvas(output);pdf.drawString(50,750,'Synthetic RAM course notes for local testing');pdf.save();pdf_bytes=output.getvalue()
     def read():
         with selectors.DefaultSelector() as selector:
@@ -42,6 +43,8 @@ def run_checks(browser, _media, evidence):
                 if f'{u.scheme}://{u.netloc}'!=harness.ORIGIN:unexpected.append(req.url);r.abort();return
                 if not u.path.startswith('/api/'):r.continue_();return
                 calls.append((role,req.method,u.path))
+                if role=='admin' and req.method=='GET' and gateway_failures.get(u.path,0):
+                    gateway_failures[u.path]-=1;r.fulfill(status=502,body='Temporary gateway interruption');return
                 response=r.fetch(url=api+u.path+('?' + u.query if u.query else ''),max_retries=0)
                 r.fulfill(response=response)
             ctx.route('**/*',route)
@@ -50,6 +53,9 @@ def run_checks(browser, _media, evidence):
         admin=session('admin');admin.get_by_role('link',name='Doubt Dost knowledge base',exact=False).click()
         expect(admin.get_by_role('heading',name='Doubt Dost knowledge base',exact=True)).to_be_visible()
         admin.get_by_role('combobox',name='Knowledge base course').select_option(cid)
+        assert all(value==0 for value in gateway_failures.values())
+        expect(admin.get_by_role('alert')).to_have_count(0)
+        harness.check(True,'temporary 502 workspace reads recover automatically without a failure banner')
         admin.get_by_label('Knowledge base PDFs',exact=True).set_input_files({'name':'Synthetic memory.pdf','mimeType':'application/pdf','buffer':pdf_bytes})
         admin.get_by_role('button',name='Upload selected PDFs',exact=True).click()
         expect(admin.get_by_text('Indexed draft',exact=True)).to_be_visible(timeout=15000)

@@ -1,3 +1,4 @@
+import { Button } from "./Action.jsx";
 import { useCallback, useEffect, useState } from "react";
 import { useDecision } from "./DecisionProvider.jsx";
 import axiosInstance, { errorMessage } from "../services/axiosInstance.js";
@@ -38,13 +39,13 @@ export default function CourseAssignments({ courseId, published, price = 0, onCh
     {!published && <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">This also publishes the course. Finish any video uploads before granting access.</p>}
     <form className="mt-4 space-y-3" onSubmit={(event) => { event.preventDefault(); assign(emails.split(/[\s,;]+/).filter(Boolean), true); }}>
       <label className="block text-sm font-medium">Student email addresses<textarea required disabled={busy} className="input-field mt-1 min-h-24" value={emails} onChange={(event) => setEmails(event.target.value)} placeholder="student@example.com" /></label>
-      <button className="btn-primary" disabled={busy}>{busy ? "Saving…" : paidCourse ? "Grant free access" : "Assign course"}</button>
+      <Button className="btn-primary" disabled={busy}>{busy ? "Saving…" : paidCourse ? "Grant free access" : "Assign course"}</Button>
     </form>
-    {error && <div className="mt-3 text-sm text-red-700 dark:text-red-300" role="alert">{error}<button className="ml-3 underline" disabled={busy} onClick={load}>Reload assignments</button></div>}
+    {error && <div className="mt-3 text-sm text-red-700 dark:text-red-300" role="alert">{error}<Button className="ml-3 underline" disabled={busy} onClick={load}>Reload assignments</Button></div>}
     {message && <p className="mt-3 text-sm text-success-600 dark:text-emerald-300" role="status">{message}</p>}
     <ul className="mt-5 divide-y divide-slate-200 dark:divide-slate-700">{assignments.filter((item) => item.student).map((item) => <li className="flex flex-wrap items-center justify-between gap-3 py-3" key={item._id}>
       <div className="min-w-0"><p className="font-medium">{item.student.name}</p><p className="break-words text-sm text-slate-500 dark:text-slate-400">{item.student.email} · {item.status}</p>{paidCourse && <p className="mt-1 text-sm text-primary-700 dark:text-primary-200">{item.paymentWaivedAt ? "Free access granted" : "Payment applies · no free access granted"}</p>}</div>
-      <div className="flex flex-wrap items-center gap-3">{paidCourse && !item.paymentWaivedAt && <button disabled={busy} className="btn-secondary" onClick={() => assign([item.student.email])}>Grant free access</button>}<button disabled={busy} className="text-sm text-red-700 dark:text-red-300 underline" onClick={() => remove(item)}>Remove assignment</button></div>
+      <div className="flex flex-wrap items-center gap-3">{paidCourse && !item.paymentWaivedAt && <Button disabled={busy} className="btn-secondary" onClick={() => assign([item.student.email])}>Grant free access</Button>}<Button disabled={busy} className="text-sm text-red-700 dark:text-red-300 underline" onClick={() => remove(item)}>Remove assignment</Button></div>
     </li>)}</ul>
     {!assignments.length && <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">No students assigned yet.</p>}
   </section>;

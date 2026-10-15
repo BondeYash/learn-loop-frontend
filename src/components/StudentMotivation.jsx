@@ -1,3 +1,4 @@
+import { Button } from "./Action.jsx";
 import { useState } from "react";
 import { ArrowUpRight, BookOpen, Check, Clock3, FileText, PencilLine, Sprout } from "lucide-react";
 
@@ -14,7 +15,7 @@ const steps = [
 
 export default function StudentMotivation() {
   const [minutes, setMinutes] = useState(30);
-  return <section id="study-plan" className="student-motivation" aria-labelledby="motivation-title">
+  return <section id="study-plan" className="student-motivation" data-reveal aria-labelledby="motivation-title">
     <div className="motivation-copy">
       <span className="motivation-mark" aria-hidden="true"><Sprout size={34} strokeWidth={1.6} /></span>
       <p className="section-context">For the days when it feels difficult</p>
@@ -26,7 +27,7 @@ export default function StudentMotivation() {
     <div className="study-routine">
       <div className="routine-heading"><span className="routine-clock" aria-hidden="true"><Clock3 size={23} /></span><div><h3>Aaj ka chhota target</h3><p>How much time do you have?</p></div></div>
       <div className="routine-options" role="group" aria-label="Study time">
-        {Object.keys(routines).map(value => <button key={value} type="button" aria-pressed={minutes === Number(value)} onClick={() => setMinutes(Number(value))}>{value} min</button>)}
+        {Object.keys(routines).map(value => <Button key={value} type="button" aria-pressed={minutes === Number(value)} onClick={() => setMinutes(Number(value))}>{value} min</Button>)}
       </div>
       <div aria-live="polite" aria-atomic="true">
         <p className="routine-total">Your {minutes}-minute study plan</p>

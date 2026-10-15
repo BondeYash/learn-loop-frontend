@@ -55,7 +55,7 @@ def run_checks(browser, media, evidence):
     def fits(page,label):
         expect(page).to_have_title('Praneet Vidyapeeth')
         expect(page.locator('meta[name="description"]')).to_have_attribute('content', re.compile('Praneet Vidyapeeth'))
-        brand=page.locator('header .brand').first
+        brand=page.locator('.brand:visible').first
         assert ' '.join(brand.inner_text().split())=='Praneet Vidyapeeth'
         assert brand.evaluate('e=>{const r=e.getBoundingClientRect();return r.left>=0 && r.right<=innerWidth}')
         assert 'LessonLoop' not in page.locator('body').inner_text()
@@ -69,9 +69,9 @@ def run_checks(browser, media, evidence):
             page,state=fixture(theme=theme);page.goto(harness.ORIGIN);expect(page.get_by_role('heading',name='Bade sapne. Roz ki taiyaari.')).to_be_visible();page.evaluate('document.fonts.ready')
             expect(page.get_by_role('link',name='Praneet Vidyapeeth home',exact=True)).to_be_visible()
             expect(page.locator('footer')).to_contain_text('Praneet Vidyapeeth')
-            heading=page.locator('.study-hero h1');font=heading.evaluate('e=>getComputedStyle(e).fontFamily');harness.check('Baloo 2' in font,'display family is loaded: '+font)
-            assert page.evaluate("document.fonts.check('800 40px \"Baloo 2\"','Padhai') && document.fonts.check('500 17px \"Plus Jakarta Sans\"','Course')")
-            expect(page.locator('.hero-actions').get_by_role('link',name='Explore courses',exact=True)).to_be_visible()
+            heading=page.locator('.study-hero h1');font=heading.evaluate('e=>getComputedStyle(e).fontFamily');harness.check('Plus Jakarta Sans' in font,'display family is loaded: '+font)
+            assert page.evaluate("document.fonts.check('800 40px \"Plus Jakarta Sans\"','Padhai') && document.fonts.check('500 17px \"Plus Jakarta Sans\"','Course')")
+            expect(page.locator('.hero-actions').get_by_role('link',name=re.compile('^(Explore courses|Start learning)'))).to_be_visible()
             plan=page.get_by_role('group',name='Study time')
             expect(plan.get_by_role('button',name='30 min',exact=True)).to_have_attribute('aria-pressed','true')
             calls=list(state['calls'])

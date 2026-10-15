@@ -86,7 +86,7 @@ def run_checks(browser, _media, evidence):
             expect(page.get_by_role("status").filter(has_text="Synthetic information")).to_be_visible()
             page.get_by_role("button", name=f"Switch to {'light' if theme == 'dark' else 'dark'} theme").click()
             background = page.locator(".Toastify__toast[data-in='true']").evaluate("e => getComputedStyle(e).backgroundColor")
-            harness.check(background == ("rgb(255, 255, 255)" if theme == "dark" else "rgb(36, 33, 51)"), "visible toast follows theme toggle")
+            harness.check(background == ("rgb(255, 255, 255)" if theme == "dark" else "rgb(25, 38, 37)"), "visible toast follows theme toggle")
             dismiss_all(page)
             for text in ["First actionable failure", "Second actionable failure", "Third queued failure", "Third queued failure"]: emit(page, "error", text)
             expect(page.get_by_role("alert")).to_have_count(2)

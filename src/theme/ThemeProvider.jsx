@@ -1,3 +1,4 @@
+import { Button } from "../components/Action.jsx";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 const ThemeContext = createContext(null);
@@ -11,7 +12,7 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
     document.documentElement.style.colorScheme = theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#191724" : "#FFF9EF");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#111B1A" : "#F7F7F0");
     try { localStorage.setItem(key, theme); } catch { /* The in-memory preference still works. */ }
   }, [theme]);
   useEffect(() => {
@@ -24,5 +25,5 @@ export function ThemeProvider({ children }) {
 export function ThemeToggle() {
   const { theme, setTheme } = useContext(ThemeContext);
   const next = theme === "dark" ? "light" : "dark";
-  return <button type="button" className="btn-secondary h-10 w-10 shrink-0 p-0" aria-label={`Switch to ${next} theme`} title={`Switch to ${next} theme`} onClick={() => setTheme(next)}>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</button>;
+  return <Button type="button" className="btn-secondary h-10 w-10 shrink-0 p-0" aria-label={`Switch to ${next} theme`} title={`Switch to ${next} theme`} onClick={() => setTheme(next)}>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</Button>;
 }
