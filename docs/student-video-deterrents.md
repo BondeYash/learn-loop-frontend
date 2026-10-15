@@ -37,3 +37,9 @@ Keyboard shortcuts apply only within the player: Space/K toggles playback, J/L u
 Ticket renewal preserves the latest position and playing/paused state, selected speed, volume, mute and video keyboard focus. Skipping continues to use the existing learning-place reporting and never marks a lesson complete automatically. No backend entitlement, payment, progress or signed-ticket API contract changes are required.
 
 `tests/student_player_browser.py` also checks actual media rates, skip boundaries, keyboard scope, native/custom control synchronization, preferences across lessons/reloads, automatic renewal, both themes at 320/390/1280px, 200% zoom and landscape fullscreen. `tests/videoPreferences.test.js` covers corrupt and denied storage.
+
+## Playback layout refinement, 2026-10-15
+
+Playback buttons now have 52px height, larger icons and a visible Play/Pause label where space permits. Speed and skip selects use compact widths. Container queries adapt to the actual player card width: smaller cards put settings on a second row, and narrow phones use compact transport/fullscreen icons with accessible labels. Keyboard focus remains visible, and reduced-motion preferences disable button transitions.
+
+The full isolated Chrome regression above passed after the layout change, including both themes, 320/390/1280px, 200% zoom, landscape fullscreen and real media playback/renewal. Lint, frontend tests, production build and the Cloudflare deployment dry run also passed.
