@@ -34,10 +34,10 @@ def run_checks(browser,media,evidence):
     def fixture(theme='light'):
         ctx=browser.new_context(viewport={'width':1440,'height':1000},service_workers='block',permissions=['clipboard-read','clipboard-write']);contexts.append(ctx)
         ctx.add_init_script(f"localStorage.setItem('lessonloop_theme','{theme}')")
-        page=ctx.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
+        page=ctx.new_page();page.clock.install();page.on('pageerror',lambda e:errors.append(str(e)))
         courses=[{'_id':CID,'title':'CCC · Computer fundamentals','description':'Synthetic course','price':199,'isPublished':True,'access':{'videos':True,'enrolled':True},'payment':{'required':False,'waived':True},'category':{'name':'Computer exams'}},{'_id':SECOND,'title':'General studies','description':'Second synthetic course','price':0,'access':{'videos':True,'enrolled':True}},{'_id':'locked-course','title':'Locked course should not be a study chat','price':999,'access':{'videos':False,'enrolled':False}}]
         turns=[{'id':f'old-{i}','question':f'Explain memory example {i}','answer':MARKDOWN,'status':'answered','sources':[{'documentId':'doc-fixture','filename':'Course memory notes.pdf','page':6,'excerpt':'RAM stores temporary information.'}]} for i in range(3)]
-        state={'turns':{CID:turns,SECOND:[]},'posts':0,'hold':True,'held':[],'daily':20,'available':True,'courses':courses}
+        state={'turns':{CID:turns,SECOND:[]},'posts':0,'hold':True,'held':[],'daily':20,'available':True,'courses':courses,'gets':0}
         def route(r):
             req=r.request;u=urlparse(req.url)
             if u.netloc!='127.0.0.1:5186':unexpected.append(req.url);r.abort();return
@@ -49,11 +49,13 @@ def run_checks(browser,media,evidence):
                 if course not in [CID,SECOND]:r.fulfill(status=403,json={'message':'Course access required'});return
                 if req.method=='POST':
                     state['posts']+=1;assert len(req.post_data_json['requestId'])==36
-                    turn={'id':f'new-{state["posts"]}','question':req.post_data_json['question'],'answer':'A clear answer from the approved notes.','status':'answered','sources':[]}
+                    turn={'id':f'new-{state["posts"]}','requestId':req.post_data_json['requestId'],'question':req.post_data_json['question'],'answer':'A clear answer from the approved notes.','status':'answered','sources':[]}
                     state['turns'][course].append(turn);state['daily']-=1
                     if state['hold']:state['held'].append((r,turn));return
                     data={'turn':turn}
-                else:data={'course':{'id':course,'title':courses[0 if course==CID else 1]['title']},'available':state['available'],'dailyRemaining':state['daily'],'documents':1,'turns':deepcopy(state['turns'][course])}
+                else:
+                    state['gets']+=1
+                    data={'course':{'id':course,'title':courses[0 if course==CID else 1]['title']},'available':state['available'],'readiness':state.get('readiness'),'dailyRemaining':state['daily'],'documents':1,'turns':deepcopy(state['turns'][course])}
             elif u.path.endswith('/feedback'):data={}
             else:unexpected.append(req.url);r.fulfill(status=500,json={'message':'Unexpected fixture request'});return
             r.fulfill(json={'data':data})
@@ -98,6 +100,29 @@ def run_checks(browser,media,evidence):
             before=state['posts'];page.get_by_role('button',name='Concept clear karo',exact=False).click();assert '[topic from my course]' in field.input_value();assert state['posts']==before
             state['daily']=0;page.reload();expect(page.get_by_text('You’ve used today’s answer allowance.',exact=False)).to_be_visible();expect(page.get_by_role('button',name='Ask Doubt Dost',exact=True)).to_be_disabled()
             state['daily']=20;state['available']=False;page.reload();expect(page.get_by_text('Your course’s doubt assistant is being prepared.',exact=False)).to_be_visible()
+            state['readiness']={'code':'awaiting_publication','message':'The course PDFs are indexed and waiting to be published.'}
+            page.get_by_role('button',name='Check again',exact=True).click();expect(page.get_by_text(state['readiness']['message'],exact=True)).to_be_visible()
+            state['available']=True;page.clock.fast_forward(16000)
+            expect(field).to_be_enabled();assert state['posts']==before, 'publication revalidation never posts an AI request'
+            field.fill('Recover this saved answer without sending twice');field.press('Enter')
+            expect(page.locator('.doubt-turn--pending')).to_be_visible();posts=state['posts']
+            # The provider finished and stored the answer, but the original HTTP
+            # response was lost. Status reads must recover that exact request.
+            page.clock.fast_forward(9000);expect(field).to_have_value('');expect(field).to_be_enabled()
+            expect(page.locator('.doubt-turn--pending')).to_have_count(0);assert state['posts']==posts
+            route,turn=state['held'].pop();route.abort()
+            page.clock.resume()
+            # A genuine pending response must show honest elapsed feedback,
+            # then the independent browser deadline must leave the spinner.
+            field.fill('A slow provider should not freeze this chat');field.press('Enter');expect(page.locator('.doubt-turn--pending')).to_be_visible()
+            pending=state['turns'][SECOND][-1];pending['status']='pending';pending['answer']=''
+            page.clock.fast_forward(16000);expect(page.get_by_role('button',name='Check saved answer',exact=True)).to_be_visible()
+            fits(page,'slow answer on mobile')
+            pending['status']='failed';pending['answer']='The AI service took too long to answer.'
+            page.clock.fast_forward(45000)
+            expect(page.locator('.doubt-turn--pending')).to_have_count(0);expect(field).to_have_value('A slow provider should not freeze this chat')
+            route,turn=state['held'].pop();route.abort()
+            page.clock.resume()
             page.goto(harness.ORIGIN+'/courses/locked-course/doubts');expect(page.get_by_role('alert')).to_contain_text('Course access required');expect(page.locator('.doubt-turn')).to_have_count(0)
             state['courses']=[];page.goto(harness.ORIGIN+'/doubts');expect(page.get_by_role('heading',name='Your study chat starts with a course')).to_be_visible()
             harness.check(True,f'{theme}: student entry, course isolation, rich safe answers, saved history, keyboard send, copy, scroll, mobile composer, quota and empty/denied states')

@@ -91,7 +91,7 @@ Validate with `npm test`, `npm run lint`, `npm run build`, `npm run check:cloudf
 
 ## Doubt Dost
 
-The course PDF assistant uses the existing same-origin API proxy. Follow [Doubt Dost setup](doubt-dost.md); keep the Gemini key only in the backend.
+The course PDF assistant uses the existing same-origin API proxy. Follow [Doubt Dost setup](doubt-dost.md); keep GROQ_API_KEY only in the backend.
 
 ## Interface design
 

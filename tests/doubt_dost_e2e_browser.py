@@ -1,4 +1,4 @@
-"""Real React + Express + MongoDB; synthetic accounts/PDFs and fake Gemini/R2.
+"""Real React + Express + MongoDB; synthetic accounts/PDFs and fake Groq/R2.
 No production credentials, AI charges, email, payments or external requests.
 DOUBT_BACKEND_DIR=/path/to/learn-loop-backend python3 tests/doubt_dost_e2e_browser.py
 """
@@ -16,12 +16,12 @@ import student_player_browser as harness
 
 def run_checks(browser, _media, evidence):
     backend = Path(os.environ.get('DOUBT_BACKEND_DIR', str(harness.ROOT.parent / 'learn-loop-backend'))).resolve()
-    env = {k:v for k,v in os.environ.items() if k not in ['MONGO_URI','MONGO_DB_NAME','GEMINI_API_KEY','GOOGLE_API_KEY','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY','RAZORPAY_KEY_SECRET']}
+    env = {k:v for k,v in os.environ.items() if k not in ['MONGO_URI','MONGO_DB_NAME','GROQ_API_KEY','GEMINI_API_KEY','GOOGLE_API_KEY','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY','RAZORPAY_KEY_SECRET']}
     env.update(NODE_ENV='test', CLIENT_URL=harness.ORIGIN, AUTH_RATE_LIMIT_MAX='100', RAZORPAY_MODE='test')
     fixture = subprocess.Popen(['node','tests/doubtBrowserFixture.js'],cwd=backend,env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,bufsize=1)
     contexts=[]; errors=[]; unexpected=[]; calls=[]
     gateway_failures={'/api/admin/doubt-dost':1, '/api/admin/doubt-dost/activity':1}
-    output=io.BytesIO();pdf=canvas.Canvas(output);pdf.drawString(50,750,'Synthetic RAM course notes for local testing');pdf.save();pdf_bytes=output.getvalue()
+    output=io.BytesIO();pdf=canvas.Canvas(output);pdf.drawString(50,750,'RAM stores information temporarily while the computer is working. Synthetic RAM course notes for local testing.');pdf.save();pdf_bytes=output.getvalue()
     def read():
         with selectors.DefaultSelector() as selector:
             selector.register(fixture.stdout,selectors.EVENT_READ)
@@ -62,11 +62,22 @@ def run_checks(browser, _media, evidence):
         chat=admin.locator('.doubt-chat');chat.get_by_label('Your doubt',exact=True).fill('Explain RAM from this course')
         chat.get_by_label('Answer language',exact=True).select_option('en');chat.get_by_role('button',name='Ask Doubt Dost',exact=True).click()
         expect(chat.get_by_text('RAM is temporary memory.',exact=False)).to_be_visible()
-        admin.get_by_role('button',name='Publish to Doubt Dost',exact=True).click();expect(admin.get_by_text('Published to students',exact=True)).to_be_visible()
-        harness.check(True,'real admin upload → background indexing → draft preview → publication')
         student=session('student');student.goto(harness.ORIGIN+f'/courses/{cid}')
         student.get_by_role('link',name='Ask Doubt Dost',exact=True).click()
         expect(student.get_by_role('heading',name='Doubt Dost',exact=True,level=1)).to_be_visible()
+        expect(student.get_by_text('The course PDFs are indexed and waiting to be published.',exact=False)).to_be_visible()
+        expect(student.get_by_label('Your doubt',exact=True)).to_be_disabled()
+        admin.get_by_role('button',name='Publish to Doubt Dost',exact=True).click();expect(admin.get_by_text('Published to students',exact=True)).to_be_visible()
+        expect(student.get_by_label('Your doubt',exact=True)).to_be_enabled(timeout=20000)
+        admin.reload();expect(admin.get_by_text('Published to students',exact=True)).to_be_visible()
+        admin.get_by_role('button',name='Unpublish',exact=True).click();expect(admin.get_by_role('dialog')).to_be_visible()
+        admin.get_by_role('button',name='Cancel',exact=True).click();assert control('stats')['published']==1
+        admin.get_by_role('button',name='Unpublish',exact=True).click();admin.get_by_role('button',name='Unpublish PDF',exact=True).click()
+        expect(admin.get_by_text('Indexed draft',exact=True)).to_be_visible()
+        student.reload();expect(student.get_by_label('Your doubt',exact=True)).to_be_disabled()
+        admin.get_by_role('button',name='Publish to Doubt Dost',exact=True).click();student.get_by_role('button',name='Check again',exact=True).click()
+        expect(student.get_by_label('Your doubt',exact=True)).to_be_enabled()
+        harness.check(True,'real indexing/preview/publication; open student chat unlocks automatically; publication persists on reload; unpublish needs explicit confirmation')
         student.get_by_label('Your doubt',exact=True).fill('RAM kya hoti hai?');student.get_by_role('button',name='Ask Doubt Dost',exact=True).click()
         expect(student.get_by_text('RAM temporary memory hoti hai.',exact=False)).to_be_visible()
         student.locator('.doubt-sources summary').first.click()
@@ -98,7 +109,7 @@ def run_checks(browser, _media, evidence):
                     page.screenshot(path=str(evidence/f'doubt-{label}-{theme}-{width}.png'),full_page=True)
                 page.set_viewport_size({'width':640,'height':1000});page.evaluate("document.documentElement.style.zoom='2'");assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),(label,theme,'zoom');page.evaluate("document.documentElement.style.zoom=''")
             harness.check(True,f'{label} light/dark 320px/1280px and 200% zoom')
-        control('disabled');student.reload();expect(student.get_by_text('Your course’s doubt assistant is being prepared.',exact=False)).to_be_visible();expect(student.get_by_role('button',name='Ask Doubt Dost',exact=True)).to_be_disabled()
+        control('disabled');student.reload();expect(student.get_by_text('Doubt Dost is paused by the platform.',exact=False)).to_be_visible();expect(student.get_by_role('button',name='Ask Doubt Dost',exact=True)).to_be_disabled()
         stats=control('stats');assert stats['published']==1 and stats['documents']==1 and stats['answers']==6,stats
         harness.check(not errors,'no browser errors: '+str(errors));harness.check(not unexpected,'no external provider/media requests: '+str(unexpected))
     finally:

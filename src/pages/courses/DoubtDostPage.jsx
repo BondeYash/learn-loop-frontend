@@ -2,30 +2,43 @@ import { BackLink, Button, ActionLink } from "../../components/Action.jsx";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowRight, BookOpen, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
-import { errorMessage } from "../../services/axiosInstance.js";
+import axiosInstance, { errorMessage } from "../../services/axiosInstance.js";
 import resilientGet from "../../services/resilientGet.js";
 import DoubtChat from "../../components/DoubtChat.jsx";
 
 function CourseConversation({ id, courses }) {
   const navigate = useNavigate();
-  const [data, setData] = useState(null), [error, setError] = useState("");
-  const generation = useRef(0), active = useRef(null);
-  const load = useCallback(async () => {
+  const [data, setData] = useState(null), [error, setError] = useState(""), [refreshing, setRefreshing] = useState(false);
+  const generation = useRef(0), active = useRef(null), lastRead = useRef(0);
+  const load = useCallback(async ({ background = false } = {}) => {
+    if (background && active.current) return;
     active.current?.abort(); const controller = new AbortController(); active.current = controller;
-    const version = ++generation.current;
+    const version = ++generation.current; lastRead.current = Date.now(); setRefreshing(true);
     try {
-      const result = await resilientGet(`/courses/${id}/doubt-dost`, { signal: controller.signal });
+      const result = await (background ? axiosInstance.get(`/courses/${id}/doubt-dost`, { signal: controller.signal, timeout: 12000 }) : resilientGet(`/courses/${id}/doubt-dost`, { signal: controller.signal }));
       if (!controller.signal.aborted && version === generation.current) { setData(result.data.data); setError(""); }
     } catch (e) {
       if (!controller.signal.aborted && version === generation.current) {
         if ([401, 403, 404, 410].includes(e.response?.status)) setData(null);
-        setError(errorMessage(e));
+        if (!background || [401, 403, 404, 410].includes(e.response?.status)) setError(errorMessage(e));
       }
-    } finally { if (active.current === controller) active.current = null; }
+    } finally { if (active.current === controller) { active.current = null; setRefreshing(false); } }
   }, [id]);
   useEffect(() => { void load(); return () => { active.current?.abort(); }; }, [load]);
   const hasPending = data?.turns.some(turn => turn.status === "pending");
-  useEffect(() => { if (!hasPending) return; const timer = setInterval(() => { if (!document.hidden && !active.current) void load(); }, 5000); return () => clearInterval(timer); }, [hasPending, load]);
+  const unavailable = data?.available === false;
+  useEffect(() => {
+    if (!hasPending && !unavailable) return;
+    let stopped = false, timer, attempts = 0;
+    const schedule = () => { if (!stopped) timer = setTimeout(tick, hasPending ? 5000 : attempts < 4 ? 15000 : 60000); };
+    const tick = async () => { if (!document.hidden && !active.current) { attempts++; await load({ background: true }); } schedule(); };
+    schedule(); return () => { stopped = true; clearTimeout(timer); };
+  }, [hasPending, unavailable, load]);
+  useEffect(() => {
+    const refresh = () => { if (!document.hidden && !active.current && Date.now() - lastRead.current > 5000) void load({ background: true }); };
+    window.addEventListener("focus", refresh); window.addEventListener("online", refresh); document.addEventListener("visibilitychange", refresh);
+    return () => { window.removeEventListener("focus", refresh); window.removeEventListener("online", refresh); document.removeEventListener("visibilitychange", refresh); };
+  }, [load]);
   const title = data?.course.title || courses.find(course => course._id === id)?.title || "Your course";
   const choices = courses.some(course => course._id === id) ? courses : [{ _id: id, title }, ...courses];
   return <div className="doubt-workspace">
@@ -34,7 +47,7 @@ function CourseConversation({ id, courses }) {
       <div className="doubt-mobile-course"><label htmlFor="doubt-course-switch">Course</label><select id="doubt-course-switch" aria-label="Chat course" value={id} onChange={event => navigate(`/courses/${event.target.value}/doubts`)}>{choices.map(course => <option key={course._id} value={course._id}>{course.title}</option>)}</select><Link to="/doubts" aria-label="Choose another course"><BookOpen size={18} aria-hidden="true" /></Link></div>
       {error && <div className="doubt-load-error" role="alert"><p>{error}</p><Button className="btn-secondary" onClick={load}>Reload chat</Button><ActionLink className="btn-secondary" to={`/courses/${id}`}>Open course</ActionLink></div>}
       {!data && !error && <div className="doubt-chat-skeleton" role="status" aria-label="Loading Doubt Dost…"><span className="skeleton" /><span className="skeleton" /><span className="skeleton" /><p>Opening your study chat…</p></div>}
-      {data && <DoubtChat key={id} courseId={id} initialTurns={data.turns} available={data.available} dailyRemaining={data.dailyRemaining} documents={data.documents} onRefresh={load} />}
+      {data && <DoubtChat key={id} courseId={id} initialTurns={data.turns} available={data.available} readiness={data.readiness} refreshing={refreshing} dailyRemaining={data.dailyRemaining} documents={data.documents} onRefresh={load} />}
     </div>
   </div>;
 }
