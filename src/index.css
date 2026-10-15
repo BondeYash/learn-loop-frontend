@@ -60,7 +60,7 @@ select.input-field:not([multiple]) { appearance: none; padding-inline-end: 3rem;
 .eyebrow { color: var(--primary); font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; }
 .workspace-intro { display: flex; flex: 1; align-items: center; justify-content: space-between; gap: 24px; position: relative; padding: 28px; border: 1px solid var(--line); border-radius: 24px; background-color: var(--soft); }
 .intro-spark { flex-shrink: 0; color: var(--primary); transform: rotate(12deg); }
-.stat-card { position: relative; overflow: hidden; }
+.stat-card { position: relative; min-width: 0; overflow: hidden; }
 .stat-card::after { content: ""; position: absolute; left: 20px; bottom: 0; width: 48px; height: 4px; border-radius: 4px 4px 0 0; background-color: var(--primary); }
 .stat-card:nth-child(2)::after { background-color: #FF8B72; }
 .stat-card:nth-child(3)::after { background-color: #FFB9C7; }
@@ -159,8 +159,11 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 .workspace-shell .course-card:hover { border-color: var(--ink); box-shadow: 5px 5px 0 var(--blue-soft); }
 .workspace-shell .stat-card { border: 0; border-bottom: 2px solid var(--line); border-radius: 0; background: transparent; padding-inline: 0 !important; }
 .workspace-shell .stat-card::after { content: none; }
-.stat-card > p:last-child { font-size: 2.6rem; font-weight: 800; letter-spacing: -.06em; line-height: 1.2; }
-.stat-card > p:first-child { font-size: .7rem; font-weight: 600; letter-spacing: 0; line-height: 1.6; }
+.stat-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; }
+.stat-label { min-width: 0; color: var(--muted); font-size: .8rem; font-weight: 500; letter-spacing: 0; line-height: 1.6; }
+.stat-value { margin-top: 12px; font-size: clamp(1.8rem, 3.2vw, 2.6rem); font-weight: 800; letter-spacing: -.055em; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.stat-note { margin-top: 8px; color: var(--muted); font-size: .75rem; font-weight: 400; letter-spacing: 0; line-height: 1.6; }
+.stat-heading > svg { flex-shrink: 0; }
 .stat-card svg { background: var(--lime); color: #18221f; box-sizing: content-box; padding: 10px; border-radius: 50%; }
 .stat-card:nth-child(2) svg { background: var(--coral); }
 .stat-card:nth-child(3) svg { background: #DDE5FF; }

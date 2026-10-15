@@ -42,6 +42,7 @@
 .doubt-feedback:hover { border-color: var(--primary); background: var(--soft); }
 .doubt-answer-label { color: var(--primary); }
 .doubt-admin-grid { gap: 40px; }
-.doubt-usage-strip .stat-card > p:last-child { font-size: clamp(1.1rem, 2vw, 1.8rem); }
+.doubt-usage-strip .stat-label { min-height: 2.6em; }
+.doubt-usage-strip .stat-value { font-size: clamp(1.1rem, 2vw, 1.8rem); }
 @media(min-width:901px) { .doubt-admin-grid > form { border-left: 1px solid var(--line); border-top: 0; padding: 0 0 0 28px; } }
 @media(max-width:640px) { .doubt-admin-grid { gap: 28px; } .doubt-chat-heading, .doubt-conversation, .doubt-composer { padding: 18px; } }

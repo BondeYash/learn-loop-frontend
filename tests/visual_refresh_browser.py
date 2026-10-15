@@ -43,7 +43,7 @@ def run_checks(browser, media, evidence):
             elif u.path.endswith('/complete'):state['progress']={'completedLessons':['lesson-fixture'],'percentage':100};answer={'progress':state['progress']}
             elif u.path.endswith('/notes'):answer={'notes':[]}
             elif u.path.endswith('/assignments'):answer={'assignments':[]}
-            elif u.path=='/api/admin/overview':answer={'students':1,'instructors':1,'courses':1,'published':1,'videos':0,'ready':0,'suspended':0}
+            elif u.path=='/api/admin/overview':answer={'students':37,'instructors':6,'courses':1,'published':1,'videos':17,'ready':17,'suspended':1}
             elif u.path=='/api/admin/users':answer={'users':[{'id':'teacher-fixture','name':'Fixture teacher','email':'teacher@example.invalid','role':'instructor','status':'active','createdAt':'2026-10-01T10:00:00Z'}],'page':1,'limit':20,'total':1}
             elif u.path=='/api/admin/courses':answer={'courses':[state['course']],'page':1,'limit':20,'total':1}
             elif u.path=='/api/admin/instructors':
@@ -60,6 +60,25 @@ def run_checks(browser, media, evidence):
         assert brand.evaluate('e=>{const r=e.getBoundingClientRect();return r.left>=0 && r.right<=innerWidth}')
         assert 'LessonLoop' not in page.locator('body').inner_text()
         harness.check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'),label+' with Praneet Vidyapeeth branding')
+    def stats_fit(page,label):
+        cards=page.locator('.stat-card')
+        assert cards.count()>0, label+' has dashboard statistics'
+        rows={}
+        for card in cards.all():
+            value=card.locator('.stat-value');expect(value).to_be_visible()
+            bounds=card.bounding_box();number=value.bounding_box()
+            assert value.evaluate('e=>parseFloat(getComputedStyle(e).fontSize)>=28'), label+' keeps numbers prominent'
+            assert value.evaluate('e=>e.scrollWidth<=e.clientWidth'), label+' number is not clipped'
+            assert number['y']+number['height']<=bounds['y']+bounds['height'], label+' number fits its statistic'
+            rows.setdefault(round(bounds['y']),[]).append(number['y'])
+            note=card.locator('.stat-note')
+            if note.count():
+                expect(note).to_be_visible()
+                assert note.evaluate('e=>parseFloat(getComputedStyle(e).fontSize)<=14'), label+' supporting note stays small'
+                assert note.bounding_box()['y']>=number['y']+number['height'], label+' note appears below the count'
+                assert note.evaluate('e=>e.scrollHeight<=e.clientHeight'), label+' supporting note is not clipped'
+        assert all(max(positions)-min(positions)<=1 for positions in rows.values()), label+' values align within each row'
+        harness.check(True,label+' has aligned, readable statistics')
     def screen(page,filename):
         page.evaluate('window.scrollTo({top:0,behavior:"instant"})');page.screenshot(path=str(evidence/filename),full_page=True,animations='disabled')
     def zoom(page,label):
@@ -101,9 +120,9 @@ def run_checks(browser, media, evidence):
                 rolepage,rstate=fixture(role,theme);rolepage.goto(harness.ORIGIN+path)
                 expect(rolepage.get_by_role('heading',name='Aaj kya padhein, Fixture?' if role=='student' else 'My courses' if role=='instructor' else 'Har lesson ke peechhe, aap.')).to_be_visible()
                 expect(rolepage.get_by_role('link',name='Praneet Vidyapeeth dashboard',exact=True)).to_be_visible()
-                for width in [320,1440]:
-                    rolepage.set_viewport_size({'width':width,'height':1000});fits(rolepage,role+' '+str(width)+'px '+theme);screen(rolepage,role+'-'+str(width)+'-'+theme+'.png')
-                zoom(rolepage,role+' '+theme)
+                for width in [320,640,768,1024,1440,1920]:
+                    rolepage.set_viewport_size({'width':width,'height':1000});fits(rolepage,role+' '+str(width)+'px '+theme);stats_fit(rolepage,role+' '+str(width)+'px '+theme);screen(rolepage,role+'-'+str(width)+'-'+theme+'.png')
+                zoom(rolepage,role+' '+theme);stats_fit(rolepage,role+' zoomed '+theme)
                 if role=='student':
                     rolepage.goto(harness.ORIGIN+'/courses/'+COURSE_ID);rolepage.set_viewport_size({'width':320,'height':1000});expect(rolepage.get_by_text(body,exact=True)).to_be_visible();fits(rolepage,'calm lesson 320px '+theme);screen(rolepage,'lesson-320-'+theme+'.png')
                     assert rolepage.locator('.course-content-panel h2').evaluate("e=>getComputedStyle(e).fontFamily.includes('Plus Jakarta Sans')")
