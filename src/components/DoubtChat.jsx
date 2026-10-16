@@ -16,6 +16,7 @@ const PROMPTS = [
 // below open source material; generated Markdown links remain plain text.
 const markdownComponents = {
   a: ({ children }) => <span>{children}</span>, img: () => null,
+  pre: ({ children }) => <pre tabIndex={0} role="region" aria-label="Code example">{children}</pre>,
   table: ({ children }) => <div className="doubt-table-scroll" tabIndex={0} role="region" aria-label="Answer table"><table>{children}</table></div>,
   h1: ({ children }) => <h3>{children}</h3>, h2: ({ children }) => <h3>{children}</h3>,
 };

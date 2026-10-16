@@ -13,12 +13,12 @@ export default function CreateCoursePage() {
   const { id } = useParams(); const editing = Boolean(id);
   const isAdmin = useSelector((state) => state.auth.user?.role === "admin");
   const back = editing ? `/instructor/courses/${id}/curriculum` : isAdmin ? "/admin?tab=courses" : "/instructor/courses";
-  const navigate = useNavigate(); const [categories, setCategories] = useState([]); const [error, setError] = useState(""); const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); const [categories, setCategories] = useState([]); const [error, setError] = useState(""); const [loading, setLoading] = useState(true); const [loadError, setLoadError] = useState(""); const [revision, setRevision] = useState(0);
   const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting, isDirty } } = useForm({ defaultValues: { ...publicCourseDefaults, pricingType: "free", price: "", level: "beginner", language: "English", requirements: "", learningOutcomes: "" } });
   const pricingType = watch("pricingType");
   const [lessons, setLessons] = useState([]);
   useEffect(() => {
-    let active = true; setLoading(true); setError("");
+    let active = true; setLoading(true); setLoadError(""); setError("");
     Promise.all([getCategories(), editing ? axiosInstance.get(`/courses/mine/${id}`) : Promise.resolve(null)])
       .then(([items, result]) => {
         if (!active) return;
@@ -26,13 +26,13 @@ export default function CreateCoursePage() {
         if (!editing && items[0]) setValue("category", items[0]._id);
         if (result) {
           const course = result.data.data.course;
-          if (course.archivedAt) { setError("Restore this archived course before editing."); return; }
+          if (course.archivedAt) { setLoadError("Restore this archived course before editing."); return; }
           setLessons(result.data.data.modules.flatMap((module) => module.lessons));
           reset({ ...publicCourseValues(course), title: course.title, description: course.description, pricingType: course.price > 0 ? "paid" : "free", price: course.price > 0 ? String(course.price) : "", category: course.category?._id, level: course.level, language: course.language, requirements: (course.requirements || []).join("\n"), learningOutcomes: (course.learningOutcomes || []).join("\n") });
         }
-      }).catch((e) => { if (active) setError(errorMessage(e)); }).finally(() => { if (active) setLoading(false); });
+      }).catch((e) => { if (active) setLoadError(errorMessage(e)); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [id, editing, reset, setValue]);
+  }, [id, editing, reset, setValue, revision]);
   const submit = async (values) => {
     setError("");
     const { pricingType: selectedPricing, ...fields } = values;
@@ -44,7 +44,7 @@ export default function CreateCoursePage() {
   };
   const cancel = async (event) => { if (!isDirty) return; event.preventDefault(); const to = event.currentTarget.getAttribute("href"); if (await decide({ title: "Discard unsaved changes?", body: "Your course details have not been saved. Leaving this page will discard your edits.", confirmLabel: "Discard changes", destructive: true })) navigate(to); };
   return <section className="mx-auto max-w-3xl"><BackLink to={back} onClick={cancel} >Back to {editing ? "curriculum" : "courses"}</BackLink><p className="mt-7 text-xs font-medium uppercase tracking-[.14em] text-slate-500 dark:text-slate-400">Course details</p><h1 className="mt-3 text-3xl font-semibold">{editing ? "Edit course details" : "Create a course"}</h1><p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">{editing ? "Update the details students see. Curriculum and assignments are managed separately." : "Add the details below, upload lessons or PDF notes, then choose your students."}</p>
-    {loading ? <p className="card mt-6" role="status">Loading course details…</p> : <form onSubmit={handleSubmit(submit)} className="card mt-6 space-y-5">
+    {loading ? <p className="card mt-6" role="status">Loading course details…</p> : loadError ? <div className="card mt-6" role="alert"><p>{loadError}</p><Button type="button" className="btn-secondary mt-4" onClick={() => setRevision(value => value + 1)}>Reload course details</Button></div> : <form onSubmit={handleSubmit(submit)} className="card mt-6 space-y-5">
       {error && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{error}</p>}
       <label className="block text-sm font-medium">Course title<input className="input-field mt-2" maxLength={160} disabled={isSubmitting} {...register("title", { required: "A course title is required", maxLength: 160 })} aria-invalid={Boolean(errors.title)} /></label>{errors.title && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{errors.title.message}</p>}
       <label className="block text-sm font-medium">Description<textarea className="input-field mt-2 min-h-32" maxLength={10000} disabled={isSubmitting} {...register("description", { required: "A description is required" })} aria-invalid={Boolean(errors.description)} /></label>{errors.description && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{errors.description.message}</p>}

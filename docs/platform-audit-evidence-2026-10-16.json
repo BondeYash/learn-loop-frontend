@@ -1,0 +1,226 @@
+{
+  "date": "2026-10-16",
+  "backend": {
+    "commit": "3aee362375bbaf53a1da62b6f02bf17bd4beebca",
+    "tests": 177,
+    "failed": 0,
+    "productionVulnerabilities": 0
+  },
+  "frontend": {
+    "browserSuites": [
+      {
+        "suite": "acquisition_browser",
+        "exit": 0,
+        "seconds": 24.1,
+        "log": "/tmp/platform-audit-2026-10-16/acquisition_browser-final.log"
+      },
+      {
+        "suite": "assessments_browser",
+        "exit": 0,
+        "seconds": 52.0,
+        "log": "/tmp/platform-audit-2026-10-16/assessments_browser-final.log"
+      },
+      {
+        "suite": "catalog_discovery_browser",
+        "exit": 0,
+        "seconds": 39.7,
+        "log": "/tmp/platform-audit-2026-10-16/catalog_discovery_browser-final.log"
+      },
+      {
+        "suite": "course_flow_browser",
+        "exit": 0,
+        "seconds": 21.0,
+        "log": "/tmp/platform-audit-2026-10-16/course_flow_browser-verified.log",
+        "earlierRun": {
+          "suite": "course_flow_browser",
+          "exit": 1,
+          "seconds": 26.9,
+          "log": "/tmp/platform-audit-2026-10-16/course_flow_browser-final.log"
+        }
+      },
+      {
+        "suite": "design_flow_browser",
+        "exit": 0,
+        "seconds": 39.1,
+        "log": "/tmp/platform-audit-2026-10-16/design_flow_browser-final.log"
+      },
+      {
+        "suite": "doubt_chat_ui_browser",
+        "exit": 0,
+        "seconds": 29.3,
+        "log": "/tmp/platform-audit-2026-10-16/doubt_chat_ui_browser-verified.log",
+        "earlierRun": {
+          "suite": "doubt_chat_ui_browser",
+          "exit": 0,
+          "seconds": 36.1,
+          "log": "/tmp/platform-audit-2026-10-16/doubt_chat_ui_browser-final.log"
+        }
+      },
+      {
+        "suite": "doubt_dost_e2e_browser",
+        "exit": 0,
+        "seconds": 48.4,
+        "log": "/tmp/platform-audit-2026-10-16/doubt_dost_e2e_browser-verified.log",
+        "earlierRun": {
+          "suite": "doubt_dost_e2e_browser",
+          "exit": 0,
+          "seconds": 53.1,
+          "log": "/tmp/platform-audit-2026-10-16/doubt_dost_e2e_browser-final.log"
+        }
+      },
+      {
+        "suite": "exam_notifications_browser",
+        "exit": 0,
+        "seconds": 35.6,
+        "log": "/tmp/platform-audit-2026-10-16/exam_notifications_browser-final.log"
+      },
+      {
+        "suite": "hero_slider_browser",
+        "exit": 0,
+        "seconds": 33.6,
+        "log": "/tmp/platform-audit-2026-10-16/hero_slider_browser-final.log"
+      },
+      {
+        "suite": "landing_load_browser",
+        "exit": 0,
+        "seconds": 12.9,
+        "log": "/tmp/platform-audit-2026-10-16/landing_load_browser-final.log"
+      },
+      {
+        "suite": "learning_support_browser",
+        "exit": 0,
+        "seconds": 35.0,
+        "log": "/tmp/platform-audit-2026-10-16/learning_support_browser-final.log"
+      },
+      {
+        "suite": "mock_feedback_browser",
+        "exit": 0,
+        "seconds": 39.0,
+        "log": "/tmp/platform-audit-2026-10-16/mock_feedback_browser-final.log"
+      },
+      {
+        "suite": "mock_test_e2e_browser",
+        "exit": 0,
+        "seconds": 60.0,
+        "log": "/tmp/platform-audit-2026-10-16/mock_test_e2e_browser-final.log"
+      },
+      {
+        "suite": "notifications_browser",
+        "exit": 0,
+        "seconds": 61.2,
+        "log": "/tmp/platform-audit-2026-10-16/notifications_browser-final.log"
+      },
+      {
+        "suite": "payments_browser",
+        "exit": 0,
+        "seconds": 44.7,
+        "log": "/tmp/platform-audit-2026-10-16/payments_browser-verified.log",
+        "earlierRun": {
+          "suite": "payments_browser",
+          "exit": 1,
+          "seconds": 12.0,
+          "log": "/tmp/platform-audit-2026-10-16/payments_browser-final.log"
+        }
+      },
+      {
+        "suite": "platform_reliability_browser",
+        "exit": 0,
+        "seconds": 15.1,
+        "log": "/tmp/platform-audit-2026-10-16/platform_reliability_browser-verified.log",
+        "earlierRun": {
+          "suite": "platform_reliability_browser",
+          "exit": 0,
+          "seconds": 11.5,
+          "log": "/tmp/platform-audit-2026-10-16/platform_reliability_browser-final.log"
+        }
+      },
+      {
+        "suite": "public_catalog_browser",
+        "exit": 0,
+        "seconds": 22.9,
+        "log": "/tmp/platform-audit-2026-10-16/public_catalog_browser-final.log"
+      },
+      {
+        "suite": "public_enrollment_browser",
+        "exit": 0,
+        "seconds": 27.2,
+        "log": "/tmp/platform-audit-2026-10-16/public_enrollment_browser-final.log"
+      },
+      {
+        "suite": "question_import_browser",
+        "exit": 0,
+        "seconds": 45.6,
+        "log": "/tmp/platform-audit-2026-10-16/question_import_browser-final.log"
+      },
+      {
+        "suite": "question_import_recovery_browser",
+        "exit": 0,
+        "seconds": 43.9,
+        "log": "/tmp/platform-audit-2026-10-16/question_import_recovery_browser-final.log"
+      },
+      {
+        "suite": "student_player_browser",
+        "exit": 0,
+        "seconds": 42.8,
+        "log": "/tmp/platform-audit-2026-10-16/student_player_browser-verified.log",
+        "earlierRun": {
+          "suite": "student_player_browser",
+          "exit": 0,
+          "seconds": 41.9,
+          "log": "/tmp/platform-audit-2026-10-16/student_player_browser-final.log"
+        }
+      },
+      {
+        "suite": "visual_refresh_browser",
+        "exit": 0,
+        "seconds": 59.5,
+        "log": "/tmp/platform-audit-2026-10-16/visual_refresh_browser-final.log"
+      }
+    ],
+    "unitChecks": "passed",
+    "lint": "passed",
+    "build": "passed",
+    "cloudflareDryRun": "passed",
+    "productionVulnerabilities": 0,
+    "developmentVulnerabilities": 7,
+    "mainJavaScriptKB": {
+      "before": 524.22,
+      "after": 339.74
+    },
+    "mainGzipKB": {
+      "before": 167.62,
+      "after": 117.38
+    }
+  },
+  "accessibility": {
+    "finalScans": 134,
+    "automatedViolations": 0,
+    "incompleteRuleIds": [
+      "aria-prohibited-attr",
+      "color-contrast",
+      "video-caption"
+    ],
+    "scope": "WCAG2 A/AA, 2.1 AA, 2.2 AA; local Chrome fixtures, not certification",
+    "fixedFindings": [
+      "Keyboard access to overflowing code examples",
+      "Color-independent sign-in link on signup"
+    ],
+    "supersededScan": "signup 320px dark: independently rechecked after underlining sign-in link"
+  },
+  "load": {
+    "scope": "Local warm API, real isolated MongoDB, 50 text lessons, 3001 enrollments, synthetic accounts. No production or provider traffic.",
+    "requests": 40,
+    "concurrency": 10,
+    "errors": 0,
+    "p50Ms": 217.3,
+    "p95Ms": 283.3,
+    "maxMs": 334.2,
+    "assignmentQuery": {
+      "returned": 1,
+      "keysExamined": 1,
+      "documentsExamined": 1,
+      "index": "course_1_student_1"
+    }
+  },
+  "remaining": "See platform-audit-2026-10-16.md for deployment/account and build-tool follow-ups."
+}

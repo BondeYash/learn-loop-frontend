@@ -1,0 +1,88 @@
+/* Readable copy and controls across the public, teaching and study spaces. */
+html { font-size: 100%; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+:root { --text-caption: .8125rem; --text-small: .9375rem; }
+.input-field, body input:not([type=checkbox]):not([type=radio]):not([type=file]), body select, body textarea { font-size: 1rem; }
+.input-field, .btn-secondary { border-color: var(--control); }
+.btn-primary, .btn-secondary, .btn-danger, .back-link { font-size: .875rem; min-height: 44px; min-width: 44px; }
+.workspace-nav, .mobile-workspace-nav .workspace-nav, .public-header .workspace-nav { font-size: .875rem; min-height: 44px; }
+.public-header nav > .btn-secondary, .signout-button { min-width: 44px; min-height: 44px; }
+.eyebrow, .sidebar-label, .sidebar-footer, .topbar-context, .account-identity div > span,
+.workspace-footer, .public-announcement, .public-footer-note, .public-footer > div:first-child > p,
+.course-category, .course-meta, .stat-label, .stat-note, .art-caption { font-size: var(--text-caption); line-height: 1.6; }
+.sidebar-settings, .sidebar-note a, .account-identity p, .course-outline button { font-size: .875rem; }
+.workspace-description, .student-doubt-entry div > p:last-child { font-size: var(--text-small); }
+.course-outline button { overflow-wrap: anywhere; }
+.text-slate-500:not(.dark *) { color: var(--muted); }
+label:has(> input[type=checkbox]), label:has(> input[type=radio]) { min-height: 44px; }
+.page-recovery { max-width: 680px; margin: 12vh auto; padding: 24px; }
+.page-recovery h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); margin-block: 20px; }
+.page-recovery > p:last-of-type { line-height: 1.8; }
+.page-recovery > div { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+
+/* Specificity keeps lazy-loaded page CSS from shrinking key study controls. */
+.study-hero .hero-subject, .study-hero .hero-kicker, .study-hero .hero-reassurance,
+.study-hero .hero-sticker, .study-hero .hero-offer-label, .study-hero .hero-offer-description,
+.hero-mini-photo > span, .learning-toolkit .toolkit-index, .learning-toolkit .toolkit-item div > span,
+.landing-page .section-context, .exam-pathways .exam-pathways-note, .exam-pathway > span:not(.exam-pathway-mark):not(.sr-only),
+.landing-page .routine-note, .landing-page .routine-total, .landing-page .routine-time small,
+.auth-shell .auth-mobile-note, .auth-shell .auth-photo span { font-size: var(--text-caption); line-height: 1.6; }
+.study-hero .hero-description, .learning-toolkit .toolkit-item p, .study-hero .hero-course-offer h2 { font-size: 1rem; }
+.study-hero .hero-plan-link, .auth-shell .auth-browse { font-size: .875rem; }
+.landing-page .landing-catalog-note, .landing-page .exam-pathways-heading > p,
+.landing-page .motivation-support, .landing-page .motivation-reminder,
+.landing-page .routine-heading p, .landing-page .routine-steps p, .landing-page .routine-steps h4,
+.landing-page .routine-start, .landing-page .routine-options button, .landing-page .enrollment-steps p,
+.landing-page .landing-section-heading > p, .landing-page .landing-questions details > p,
+.landing-page .landing-faq > div > p:last-child { font-size: var(--text-small); }
+.landing-page .landing-questions summary { font-size: 1rem; }
+.exam-updates .exam-updates-intro, .exam-updates .exam-notice-list h3 { font-size: var(--text-small); }
+.exam-updates .exam-updates-freshness, .exam-updates .exam-updates-source,
+.exam-updates .exam-update-count, .exam-updates .exam-notice-date { font-size: var(--text-caption); }
+.private-player .player-setting, .private-player .player-shortcuts { font-size: var(--text-caption); }
+.doubt-chat .doubt-composer-help, .doubt-chat .doubt-privacy, .doubt-chat .doubt-notice,
+.doubt-chat .doubt-sources, .doubt-chat .doubt-feedback, .doubt-chat .doubt-prompt span,
+.doubt-chat .doubt-kicker, .doubt-chat .doubt-character-count, .doubt-rail-note p { font-size: var(--text-caption); }
+.doubt-chat .doubt-feedback { min-height: 44px; }
+.doubt-page .doubt-page-header .back-link { font-size: .875rem; }
+.doubt-chat .doubt-language select { font-size: 1rem; }
+.doubt-page .doubt-mobile-course { min-height: 44px; }
+.doubt-page .doubt-mobile-course select { font-size: 1rem; }
+.doubt-page .doubt-page-title > div > p { font-size: var(--text-caption); }
+
+@media (max-width: 640px) {
+  .btn-primary, .btn-secondary, .btn-danger { font-size: .875rem; }
+  .study-hero .hero-sticker { max-width: 210px; font-size: .75rem; }
+  .study-hero .hero-mini-photo { padding-bottom: 38px; }
+  .landing-page .study-routine { transform: none; padding: 22px; box-shadow: 4px 4px 0 var(--ink); }
+  .public-header .public-header-inner { gap: 12px; }
+  .public-header nav { flex-wrap: wrap; }
+}
+@media (max-width: 480px) {
+  .study-hero .hero-photo-stage { padding-bottom: 120px; }
+  .study-hero .hero-slider-controls { bottom: 190px; }
+  .study-hero .hero-course-offer { right: 0; }
+  .study-hero .hero-mini-photo { bottom: 110px; }
+}
+@media (max-height: 600px) {
+  .doubt-chat .doubt-composer-help { font-size: .75rem; }
+  .doubt-chat .doubt-notice { padding: 7px 10px; margin-bottom: 6px; }
+}
+/* Keep statistics aligned when a label needs a second line. */
+.stat-heading { min-height: 44px; }
+.stat-heading .stat-label { min-height: 2.6em; }
+.public-header .btn-primary { font-size: .875rem; min-height: 44px; }
+.landing-page .course-price-caption, .landing-page .course-purchase-note,
+.landing-page .motivation-reminder > span { font-size: var(--text-caption); }
+.landing-page .landing-account-link { font-size: .875rem; }
+@media (max-width: 640px) {
+  nav[aria-label="Admin sections"] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  nav[aria-label="Admin sections"] button { min-height: 44px; }
+}
+.landing-page .landing-next-step > div > p, .workspace-steps li > span { font-size: var(--text-caption); }
+/* Keep Payments reachable without discovering a sideways navigation scroll. */
+@media (max-width: 900px) {
+  .app-shell--chat .app-stage > nav.mobile-workspace-nav { flex-wrap: wrap; overflow-x: visible; }
+}
+.private-player .player-setting select { font-size: 1rem; }
+.auth-shell .auth-poster > p:last-child { font-size: var(--text-caption); }
+.auth-form a.text-primary-600 { text-decoration: underline; text-underline-offset: 3px; }

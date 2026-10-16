@@ -2,6 +2,7 @@
 export default {
   darkMode: "class", content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: { extend: {
+    fontSize: { xs: ["0.8125rem", { lineHeight: "1.5" }], sm: ["0.9375rem", { lineHeight: "1.6" }] },
     colors: {
       primary: { 50: "#F0F3FF", 100: "#E5EBFF", 200: "#CED9FF", 300: "#AEBEFF", 400: "#8295FF", 500: "#596DFF", 600: "#3346FF", 700: "#2535D2", 800: "#2230A5", 900: "#202D7B", 950: "#151D45" },
       accent: { 50: "#FFF8EB", 100: "#FCE8BC", 200: "#FFD78A", 300: "#F7B54A", 400: "#EFA22E", 500: "#D58A18", 600: "#B26B0E", 700: "#8A4C0B", 800: "#6B390D", 900: "#512D12" },

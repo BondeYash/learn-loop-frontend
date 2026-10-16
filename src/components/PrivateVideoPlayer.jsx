@@ -25,6 +25,8 @@ export default function PrivateVideoPlayer({ lessonId, title, studentId, ticketP
   const pending = useRef(null);
   const automaticRetries = useRef(0);
   const [ticket, setTicket] = useState(null);
+  const activeTicket = useRef(null), retryTimer = useRef(null), renewalFailures = useRef(0);
+  const [renewalNotice, setRenewalNotice] = useState("");
   const [error, setError] = useState("");
   const [buffering, setBuffering] = useState(true);
   const rememberPlayback = () => {
@@ -35,7 +37,7 @@ export default function PrivateVideoPlayer({ lessonId, title, studentId, ticketP
     if (pending.current) return;
     if (preserve) rememberPlayback();
     const controller = new AbortController(); pending.current = controller;
-    setBuffering(true); setError("");
+    if (!activeTicket.current) setBuffering(true); setError("");
     try {
       const response = await axiosInstance.get(ticketPath || `/lessons/${lessonId}/playback`, { signal: controller.signal });
       if (!controller.signal.aborted) {
@@ -44,20 +46,37 @@ export default function PrivateVideoPlayer({ lessonId, title, studentId, ticketP
         const nextTicket = ticketField ? response.data.data[ticketField] : response.data.data;
         if (player.current?.currentSrc !== nextTicket.url) setMediaReady(false);
         else setBuffering(player.current.readyState < 3);
-        setTicket(nextTicket);
+        activeTicket.current = nextTicket; renewalFailures.current = 0; setRenewalNotice("");
+        clearTimeout(retryTimer.current); setTicket(nextTicket);
       }
     } catch (e) {
-      if (!controller.signal.aborted) { player.current?.pause(); setTicket(null); setBuffering(false); setError(errorMessage(e)); }
+      if (!controller.signal.aborted) {
+        const current = activeTicket.current;
+        if (current && current.expiresAt > Date.now() && ![401, 402, 403, 404, 410].includes(e.response?.status)) {
+          setBuffering(false); setRenewalNotice("Reconnecting the video link. You can keep watching.");
+          const delay = Math.min(10000, 2000 * 2 ** Math.min(renewalFailures.current++, 3), current.expiresAt - Date.now());
+          clearTimeout(retryTimer.current); retryTimer.current = setTimeout(() => renew(), Math.max(100, delay));
+        } else {
+          rememberPlayback(); player.current?.pause(); activeTicket.current = null;
+          clearTimeout(retryTimer.current); setTicket(null); setBuffering(false); setRenewalNotice(""); setError(errorMessage(e));
+        }
+      }
     } finally { if (pending.current === controller) pending.current = null; }
   }, [lessonId, ticketPath, ticketField]);
   useEffect(() => {
     renew(false);
-    return () => { pending.current?.abort(); pending.current = null; clearTimeout(feedbackTimer.current); };
+    return () => { pending.current?.abort(); pending.current = null; clearTimeout(feedbackTimer.current); clearTimeout(retryTimer.current); };
   }, [renew]);
   useEffect(() => {
     if (!ticket) return;
     const timer = setTimeout(() => renew(), Math.max(1000, ticket.expiresAt - Date.now() - 30000));
-    return () => clearTimeout(timer);
+    const expiry = setTimeout(() => {
+      if (activeTicket.current !== ticket) return;
+      pending.current?.abort(); pending.current = null; clearTimeout(retryTimer.current);
+      rememberPlayback(); player.current?.pause(); activeTicket.current = null; setTicket(null); setBuffering(false); setRenewalNotice("");
+      setError("Your video link expired while reconnecting. Retry playback to continue from your place.");
+    }, Math.max(0, ticket.expiresAt - Date.now()));
+    return () => { clearTimeout(timer); clearTimeout(expiry); };
   }, [ticket, renew]);
   useEffect(() => {
     const changed = () => setFullscreen(Boolean(container.current && document.fullscreenElement === container.current));
@@ -155,6 +174,7 @@ export default function PrivateVideoPlayer({ lessonId, title, studentId, ticketP
       </div>
       <details className="player-shortcuts"><summary><Keyboard size={15} aria-hidden="true" />Keyboard shortcuts</summary><p id={shortcutsId}>Focus the player first. <kbd>Space</kbd> / <kbd>K</kbd> play or pause · <kbd>J</kbd> / <kbd>L</kbd> skip by your chosen interval · <kbd>←</kbd> / <kbd>→</kbd> jump 5 seconds · <kbd>&lt;</kbd> / <kbd>&gt;</kbd> change speed · <kbd>M</kbd> mute{fullscreenAvailable && <> · <kbd>F</kbd> full screen</>}. The browser’s own controls keep their usual keys.</p></details>
     </div>}
+    {renewalNotice && <p className="mt-2 text-sm text-muted" role="status">{renewalNotice}</p>}
     {fullscreenError && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300" role="status">{fullscreenError}</p>}
     {!ticket && !error && <p className="card" role="status">{ticketPath ? "Loading sample video…" : "Loading private video…"}</p>}
     {error && <div className="card mt-3" role="alert"><p className="text-sm text-red-700 dark:text-red-300">{error}</p><Button className="btn-secondary mt-3" onClick={() => { automaticRetries.current = 0; renew(); }}>Retry playback</Button></div>}

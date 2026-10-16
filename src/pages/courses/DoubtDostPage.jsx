@@ -56,7 +56,7 @@ export default function DoubtDostPage() {
   const [courses, setCourses] = useState([]), [loading, setLoading] = useState(true), [error, setError] = useState("");
   const loadCourses = useCallback(async signal => {
     setLoading(true);
-    try { const result = await resilientGet("/courses", { signal }); if (!signal?.aborted) { setCourses(result.data.data.courses.filter(course => course.access?.videos === true)); setError(""); } }
+    try { const result = await resilientGet("/courses", { params: { enrolled: true }, signal }); if (!signal?.aborted) { setCourses(result.data.data.courses.filter(course => course.access?.videos === true)); setError(""); } }
     catch (e) { if (!signal?.aborted) setError(errorMessage(e)); }
     finally { if (!signal?.aborted) setLoading(false); }
   }, []);

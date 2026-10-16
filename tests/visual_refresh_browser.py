@@ -3,6 +3,8 @@ No account or provider operations leave the local fixture server.
 """
 from copy import deepcopy
 import re
+import os, json
+from pathlib import Path
 from urllib.parse import urlparse
 from playwright.sync_api import expect
 import student_player_browser as harness
@@ -52,7 +54,19 @@ def run_checks(browser, media, evidence):
             else:unexpected.append(req.url);r.fulfill(status=500,json={'message':'Unknown visual fixture'});return
             r.fulfill(json={'data':answer})
         ctx.route('**/*',route);return page,state
+    reports=[]
     def fits(page,label):
+        if os.environ.get('PLATFORM_A11Y') == '1':
+            if not page.evaluate('Boolean(window.axe)'):
+                page.add_script_tag(path=str(Path(__file__).resolve().parents[1]/'node_modules/axe-core/axe.min.js'))
+            page.evaluate('document.getAnimations().filter(a=>a instanceof CSSTransition).forEach(a=>a.finish())')
+            report=page.evaluate("""async () => {
+              const audit=await axe.run(document, {runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa','wcag22aa']}});
+              const fonts=[...document.querySelectorAll('button,a,label,input,select,textarea,p,span,small')].filter(e => e.checkVisibility() && e.textContent.trim() && e.getBoundingClientRect().width && !e.closest('svg,.sr-only') && parseFloat(getComputedStyle(e).fontSize)<12).map(e=>({tag:e.tagName,cls:e.className,text:e.textContent.trim().slice(0,70),size:getComputedStyle(e).fontSize}));
+              return {violations:audit.violations.map(v=>({id:v.id,impact:v.impact,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))})),incomplete:audit.incomplete.map(v=>v.id),smallText:fonts};
+            }""")
+            reports.append({'label':label,**report});(evidence/'accessibility.json').write_text(json.dumps(reports,indent=2))
+
         expect(page).to_have_title('Praneet Vidyapeeth')
         expect(page.locator('meta[name="description"]')).to_have_attribute('content', re.compile('Praneet Vidyapeeth'))
         brand=page.locator('.brand:visible').first

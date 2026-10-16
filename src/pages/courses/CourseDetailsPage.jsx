@@ -16,24 +16,60 @@ export default function CourseDetailsPage() {
   const [data, setData] = useState(null), [selected, setSelected] = useState(null), [error, setError] = useState(""), [playError, setPlayError] = useState(""), [progress, setProgress] = useState({ completedLessons: [] }), [saving, setSaving] = useState(false);
   const [searchParams] = useSearchParams(), requestedLesson = searchParams.get("lesson");
   const content = useRef(null), pending = useRef(false);
+  const queryLesson = useRef(requestedLesson), appliedQueryLesson = useRef(null); queryLesson.current = requestedLesson;
   const [paymentCourseId, setPaymentCourseId] = useState(null);
-  const load = useCallback(async () => {
+  const request = useRef(null), generation = useRef(0), lastLoad = useRef(0);
+  const load = useCallback(async ({ background = false } = {}) => {
+    if (pending.current || background && request.current) return;
+    request.current?.abort();
+    const controller = new AbortController(), version = ++generation.current;
+    request.current = controller; lastLoad.current = Date.now();
     try {
-      const result = await getCourse(id);
-      const saved = user.role === "student" && result.access?.videos !== false ? (await axiosInstance.get(`/courses/${result.course._id}/progress`)).data.data.progress : { completedLessons: [] };
+      const result = await getCourse(id, { signal: controller.signal });
+      const saved = user.role === "student" && result.access?.videos !== false
+        ? result.progress || (await axiosInstance.get(`/courses/${result.course._id}/progress`, { signal: controller.signal })).data.data.progress
+        : { completedLessons: [] };
+      if (controller.signal.aborted || version !== generation.current) return;
       const lessons = result.modules.flatMap((module) => module.lessons);
       setData(result); setProgress(saved); setError(""); setPaymentCourseId(null);
-      setSelected((current) => lessons.some((lesson) => lesson._id === current) ? current : lessons.find((lesson) => lesson._id === requestedLesson)?._id || lessons.find((lesson) => lesson._id === String(saved.resume?.lesson))?._id || lessons.find((lesson) => !saved.completedLessons.includes(lesson._id))?._id || lessons[0]?._id || null);
-    } catch (e) { setData(null); if (e.response?.data?.code === "PAYMENT_REQUIRED") { setPaymentCourseId(e.response.data.courseId || id); setError(""); } else { setPaymentCourseId(null); setError(errorMessage(e)); } }
-  }, [id, user.role, requestedLesson]);
-  useEffect(() => { load(); const timer = setInterval(load, 15000); return () => clearInterval(timer); }, [load]);
+      setSelected((current) => lessons.some((lesson) => lesson._id === current) ? current : lessons.find((lesson) => lesson._id === queryLesson.current)?._id || lessons.find((lesson) => lesson._id === String(saved.resume?.lesson))?._id || lessons.find((lesson) => !saved.completedLessons.includes(lesson._id))?._id || lessons[0]?._id || null);
+    } catch (e) {
+      if (controller.signal.aborted || version !== generation.current) return;
+      const status = e.response?.status;
+      // A brief connection failure must not unmount a lesson already playing.
+      if ([401, 402, 403, 404, 410].includes(status)) setData(null);
+      if (e.response?.data?.code === "PAYMENT_REQUIRED") { setPaymentCourseId(e.response.data.courseId || id); setError(""); }
+      else { setPaymentCourseId(null); setError(errorMessage(e)); }
+    } finally { if (request.current === controller) request.current = null; }
+  }, [id, user.role]);
+  useEffect(() => {
+    load();
+    const refresh = () => { if (!document.hidden && Date.now() - lastLoad.current >= 15000) load({ background: true }); };
+    const timer = setInterval(refresh, user.role === "student" ? 60000 : 15000);
+    window.addEventListener("online", refresh); window.addEventListener("focus", refresh); document.addEventListener("visibilitychange", refresh);
+    return () => { generation.current += 1; request.current?.abort(); request.current = null; clearInterval(timer); window.removeEventListener("online", refresh); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
+  }, [load, user.role]);
+  useEffect(() => {
+    if (!requestedLesson) appliedQueryLesson.current = null;
+    else if (requestedLesson !== appliedQueryLesson.current && data?.modules.some(module => module.lessons.some(lesson => lesson._id === requestedLesson))) {
+      appliedQueryLesson.current = requestedLesson; setSelected(requestedLesson);
+    }
+  }, [requestedLesson, data]);
   const lessons = data?.modules.flatMap((module) => module.lessons) || [], lesson = lessons.find((item) => item._id === selected), videosOpen = data?.access?.videos !== false, ready = videosOpen && lesson?.video?.status === "ready";
   const { savePosition, placeError, retryPlace } = useLearningPlace({ lessonId: lesson?._id, courseId: data?.course._id, enabled: user.role === "student" && videosOpen && Boolean(ready || lesson?.contentType === "text"), progress });
   const next = lessons.find((item) => item._id !== selected && !progress.completedLessons.includes(item._id));
   const focusContent = () => { content.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }); content.current?.focus({ preventScroll: true }); };
-  const markComplete = async () => { if (pending.current) return; pending.current = true; setSaving(true); try { setProgress((await axiosInstance.post(`/lessons/${lesson._id}/complete`)).data.data.progress); setPlayError(""); } catch (e) { setPlayError(errorMessage(e)); } finally { pending.current = false; setSaving(false); } };
-  return <section><BackLink  to="/dashboard">Dashboard</BackLink>{paymentCourseId && <CoursePayment key={paymentCourseId} courseId={paymentCourseId} onAccess={load} />}{error && <div className="card mt-5" role="alert"><p className="text-red-700 dark:text-red-300">{error}</p><Button className="btn-secondary mt-4" onClick={load}>Retry course</Button></div>}{!data ? !error && !paymentCourseId && <LoadingSkeleton variant="detail" label="Loading course…" /> : <>
-    {!videosOpen && (data.course.price > 0 || data.course.visibility === "public") && user.role === "student" && <CoursePayment publicEnrollment={data.course.visibility === "public"} courseId={data.course._id} onAccess={load} />}
+  const markComplete = async () => {
+    if (pending.current) return;
+    pending.current = true; request.current?.abort(); request.current = null;
+    const version = ++generation.current;
+    setSaving(true);
+    try { const result = await axiosInstance.post(`/lessons/${lesson._id}/complete`); if (version === generation.current) { setProgress(result.data.data.progress); setPlayError(""); } }
+    catch (e) { if (version === generation.current) setPlayError(errorMessage(e)); }
+    finally { pending.current = false; if (version === generation.current) setSaving(false); }
+  };
+  return <section><BackLink  to="/dashboard">Dashboard</BackLink>{paymentCourseId && <CoursePayment key={paymentCourseId} courseId={paymentCourseId} onAccess={() => load()} />}{error && <div className="card mt-5" role="alert"><p className="text-red-700 dark:text-red-300">{error}</p><Button className="btn-secondary mt-4" onClick={() => load()}>Retry course</Button></div>}{!data ? !error && !paymentCourseId && <LoadingSkeleton variant="detail" label="Loading course…" /> : <>
+    {!videosOpen && (data.course.price > 0 || data.course.visibility === "public") && user.role === "student" && <CoursePayment publicEnrollment={data.course.visibility === "public"} courseId={data.course._id} onAccess={() => load()} />}
     <header className="card course-overview mt-5 !p-6 sm:!p-8"><div className="min-w-0"><p className="eyebrow">{data.course.category?.name || "Your course"}</p><h1 className="mt-3 break-words text-3xl font-semibold sm:text-4xl">{data.course.title}</h1><p className="mt-4 line-clamp-3 text-sm leading-7 text-slate-600 dark:text-slate-300">{data.course.description}</p><div className="course-meta mt-5">{data.course.instructor?.name && <span><UserRound size={15} />{data.course.instructor.name}</span>}<span className="capitalize"><GraduationCap size={15} />{data.course.level || "beginner"}</span><span><Globe2 size={15} />{data.course.language || "English"}</span><span><BookOpen size={15} />{lessons.length} available {lessons.length === 1 ? "lesson" : "lessons"}</span></div><div className="mt-6 flex flex-wrap items-center gap-3">{!videosOpen || lessons.length > 0 ? <Button className="btn-primary gap-2" onClick={focusContent}><Play size={16} />{!videosOpen ? "View course outline" : user.role !== "student" ? "Preview lessons" : progress.percentage === 100 ? "Review course" : progress.completedLessons.length ? "Continue learning" : "Start learning"}</Button> : <a className="btn-primary" href="#course-notes-title">Explore course notes</a>}{videosOpen && <ActionLink className="btn-secondary" to={user.role === "student" ? `/courses/${data.course._id}/assessments` : `/instructor/courses/${data.course._id}/assessments`}>{user.role === "student" ? "Mock tests" : "Manage mock tests"}</ActionLink>}<span className="text-xs text-slate-500 dark:text-slate-400">{!videosOpen ? "Lessons open after enrollment and any required payment" : user.role === "student" ? "Available to your account" : "Instructor preview"}</span></div>{user.role === "student" && videosOpen && lessons.length > 0 && <div className="mt-5 max-w-sm"><div className="mb-2 flex justify-between text-xs text-slate-500 dark:text-slate-400"><span>{progress.completedCount ?? progress.completedLessons.length}/{progress.totalLessons ?? lessons.length} lessons marked complete</span><span>{progress.percentage || 0}% complete</span></div><progress className="course-progress" aria-label="Course completion" value={progress.percentage || 0} max={100} /></div>}</div><CourseArtwork course={data.course} className="aspect-[4/3] rounded-xl" /></header>
     {videosOpen && user.role === "student" && <section className="student-doubt-entry"><div><p className="eyebrow">Sawaal poochho. Samajh ke aage badho.</p><h2 className="mt-2 text-xl font-semibold">Meet Doubt Dost</h2><p className="mt-3 text-sm leading-7 text-muted">Get an AI explanation from your course’s approved PDFs, with sources you can check. Ask in Hindi, English or Hinglish.</p></div><ActionLink className="btn-secondary gap-2" to={`/courses/${data.course._id}/doubts`}>Ask Doubt Dost<ArrowRight size={16} /></ActionLink></section>}
     <div className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]"><section ref={content} tabIndex={-1} className="card course-content-panel min-w-0"><p className="eyebrow">{lesson ? "Your lesson" : "Learning materials"}</p><h2 className="mb-5 mt-2 text-xl font-semibold">{lesson?.title || "Course materials"}</h2>

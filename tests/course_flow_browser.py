@@ -103,6 +103,13 @@ def run_checks(browser, _media, evidence):
         context.route("**/*", respond)
         return page, context, pending
 
+    def wait_pending(page, pending):
+        # A lazy-route skeleton can appear before the page starts its API call.
+        for _ in range(100):
+            if pending: return
+            page.wait_for_timeout(50)
+        raise AssertionError("Expected the fixture API request before answering it")
+
     try:
         page, context, _ = fixture()
         page.goto(ORIGIN + "/instructor/courses/new")
@@ -158,6 +165,7 @@ def run_checks(browser, _media, evidence):
                 harness.check(skeleton.locator("[aria-busy='true']").count() > 0, f"{label} {theme} skeleton announces loading")
                 skeleton.emulate_media(reduced_motion="reduce")
                 harness.check(skeleton.locator(".skeleton").first.evaluate("e => getComputedStyle(e).animationName") == "none", f"{label} {theme} respects reduced motion")
+                wait_pending(skeleton, pending)
                 for route in pending[:]: route.fulfill(status=503, json={"message": "Fixture unavailable. Retry shortly."})
                 pending.clear()
                 expect(skeleton.get_by_role("alert")).to_contain_text("Fixture unavailable")
@@ -168,9 +176,11 @@ def run_checks(browser, _media, evidence):
         empty, _, pending = fixture("student", pending_path="/api/courses")
         empty.goto(ORIGIN + "/courses")
         expect(empty.locator(".skeleton").first).to_be_visible()
+        wait_pending(empty, pending)
         pending.pop().fulfill(status=503, json={"message": "Fixture unavailable"})
         empty.get_by_role("button", name="Retry courses").click()
         expect(empty.locator(".skeleton").first).to_be_visible()
+        wait_pending(empty, pending)
         pending.pop().fulfill(json={"data": {"courses": []}})
         expect(empty.get_by_text("No published courses yet.")).to_be_visible()
         harness.check(True, "course-list retry resolves to an empty state")

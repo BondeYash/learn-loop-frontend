@@ -72,11 +72,14 @@ def run_checks(browser,media,evidence):
             expect(page.get_by_text('Locked course should not be a study chat',exact=True)).to_have_count(0)
             page.screenshot(path=str(evidence/f'doubt-hub-{theme}.png'),animations='disabled')
             page.get_by_role('link',name='CCC · Computer fundamentals',exact=False).click();expect(page.locator('.doubt-turn')).to_have_count(3)
+            code=page.get_by_role('region',name='Code example').first;expect(code).to_have_attribute('tabindex','0');code.focus();expect(code).to_be_focused()
             expect(page.locator('.doubt-answer-text table')).to_have_count(3);expect(page.locator('.doubt-answer-text strong')).to_have_count(3)
             assert page.locator('.doubt-answer-text img,.doubt-answer-text script,.doubt-answer-text a').count()==0
             assert page.evaluate('window.UNSAFE_EXECUTED!==true')
             for width,height in [(1440,1000),(1024,768),(768,1024),(390,844),(320,568),(844,390)]:
                 page.set_viewport_size({'width':width,'height':height});fits(page,f'{theme} {width}x{height}')
+                if width<=900:
+                    assert page.locator('.mobile-workspace-nav').get_by_role('link',name='Payments',exact=True).evaluate('e=>{const r=e.getBoundingClientRect();return r.left>=0 && r.right<=innerWidth}'), 'Payments navigation stays in view'
                 page.screenshot(path=str(evidence/f'chat-{theme}-{width}x{height}.png'),animations='disabled')
             page.set_viewport_size({'width':390,'height':844});page.get_by_label('Your doubt',exact=True).focus()
             page.evaluate('Object.defineProperty(visualViewport,"height",{configurable:true,get:()=>350});visualViewport.dispatchEvent(new Event("resize"))')
